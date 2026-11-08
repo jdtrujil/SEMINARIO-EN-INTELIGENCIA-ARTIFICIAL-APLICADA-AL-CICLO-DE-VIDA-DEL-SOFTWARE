@@ -17,11 +17,27 @@ class DatosInvalidosError extends Error {
 }
 
 function obtenerTarifa(zonaOrigen, zonaDestino, tarifas) {
-  throw new Error('No implementado');
+  if (typeof zonaOrigen !== 'string' || zonaOrigen.trim() === '') {
+    throw new DatosInvalidosError('La zona de origen debe ser un texto con contenido');
+  }
+  if (typeof zonaDestino !== 'string' || zonaDestino.trim() === '') {
+    throw new DatosInvalidosError('La zona de destino debe ser un texto con contenido');
+  }
+  if (!Array.isArray(tarifas)) {
+    throw new DatosInvalidosError('Las tarifas deben ser una lista');
+  }
+  const fila = tarifas.find((t) => t.zonaOrigen === zonaOrigen && t.zonaDestino === zonaDestino);
+  if (!fila) {
+    throw new TarifaNoDisponibleError();
+  }
+  return fila.valor;
 }
 
 function formatearTarifa(valor) {
-  throw new Error('No implementado');
+  if (!Number.isInteger(valor) || valor <= 0) {
+    throw new DatosInvalidosError('La tarifa debe ser un número entero mayor que cero');
+  }
+  return `Tarifa: $${valor.toLocaleString('es-CO')}`;
 }
 
 module.exports = { obtenerTarifa, formatearTarifa, TarifaNoDisponibleError, DatosInvalidosError };
