@@ -1,0 +1,12 @@
+{
+  "name": "rutaya",
+  "version": "0.1.0",
+  "private": true,
+  "description": "RutaYa: transporte bajo demanda en moto para una cooperativa de mototaxis (proyecto del seminario)",
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

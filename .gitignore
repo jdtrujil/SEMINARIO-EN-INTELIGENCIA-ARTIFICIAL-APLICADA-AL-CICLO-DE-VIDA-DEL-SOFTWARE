@@ -1,0 +1,11 @@
+# Dependencias
+node_modules/
+
+# Secretos y configuración local: nunca se suben al repositorio
+.env
+.env.*
+!.env.example
+
+# Registros y sistema
+*.log
+.DS_Store
