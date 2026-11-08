@@ -4,7 +4,7 @@
   "private": true,
   "description": "RutaYa: transporte bajo demanda en moto para una cooperativa de mototaxis (proyecto del seminario)",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test --test-reporter=spec"
   },
   "engines": {
     "node": ">=20"
