@@ -1,0 +1,23 @@
+[project]
+name = "taller-motos"
+version = "0.2.0"
+description = "Control de ingreso y cobros del Taller Dos Ruedas"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [{ name = "Juan Diego Trujillo Rodriguez" }]
+# El sistema no tiene dependencias en tiempo de ejecución por ahora.
+dependencies = []
+
+[tool.ruff]
+line-length = 88
+target-version = "py38"
+
+[tool.ruff.lint]
+# E estilo, F errores, B errores probables, S seguridad (reglas de bandit)
+select = ["E", "F", "B", "S"]
+
+[tool.ruff.lint.per-file-ignores]
+# Pruebas de la semana 5: sus líneas largas no se reformatean para no tocar
+# ninguna prueba. Ver revision_seguridad.md, avisos no corregidos.
+"tests/test_calculo_cobro.py" = ["E501"]
