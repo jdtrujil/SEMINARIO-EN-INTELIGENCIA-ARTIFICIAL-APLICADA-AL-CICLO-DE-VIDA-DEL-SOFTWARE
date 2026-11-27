@@ -34,6 +34,8 @@ Cada regla sale de la historia de usuario, de la entrevista de la semana 3 o del
 | P15 | Cantidad | Uno o más | Sí | 2 litros a 32.000 | repuestos 64.000 |
 | P16 | Cantidad | Con decimales | No | 1.5 | ValueError: La cantidad debe ser un número entero |
 | P17 | Cantidad | Verdadero o falso | No | True | el mismo ValueError |
+| P18 | Precio | Decimal con parte decimal cero | No | 18000.0 | ValueError: El precio debe ser un número entero de pesos (agregada por la mutación M5) |
+| P19 | Cantidad | Decimal con parte decimal cero | No | 2.0 | ValueError: La cantidad debe ser un número entero (agregada por la mutación M5) |
 
 **Valores límite**
 
@@ -123,3 +125,71 @@ Le pedí a la IA casos para las tres reglas, nombrando las técnicas (bitácora,
 | ¿El esperado sale de la regla? | Proponía que "abc12d" fuera un error, lo que contradice la decisión de convertir a mayúsculas | Lo cambié a V3: devuelve ABC12D |
 | ¿Señaló ambigüedades? | Ninguna | Las anoté yo: A1 a A6 |
 | ¿Inventó reglas? | Cuatro: descripción obligatoria, precio máximo de 10.000.000, cantidad máxima de 100 y quitar el guion de la placa | Las descarté como casos; las dos primeras quedaron como ambigüedades A5 y A6 para preguntar al cliente |
+
+## 2. Pruebas de la IA corregidas, descartadas o agregadas
+
+La IA escribió un borrador de pruebas con pytest a partir de las reglas y de la tabla revisada (commit 47b4e8a, bitácora entrada 26). Las 70 pasaban, pero apliqué a cada una las tres preguntas: (1) ¿el esperado sale de la regla?, (2) ¿fallaría si rompo el código?, (3) ¿cubre algo que otra prueba no cubre? La versión revisada está en el commit 3051ed9.
+
+| # | Prueba del borrador | Pregunta que no pasó | Decisión | Razón | Qué hice en su lugar |
+|---|---|---|---|---|---|
+| 1 | `test_calcula_totales_sin_iva`, fila "L1 primer valor no negativo" | 3 | Descartada | Misma entrada y mismo esperado que la fila P10 (precio 0) | La fila P10 ahora dice "P10 y L1" |
+| 2 | `test_calcula_totales_sin_iva`, fila "L3 cantidad mínima" | 3 | Descartada | Idéntica a la fila P2, que ya usa cantidad 1 | La fila P2 ahora dice "P2 y L3" |
+| 3 | `test_total_es_la_suma_de_los_subtotales` | 1 y 2 | Descartada | El esperado salía del mismo código: si el cálculo sumara IVA a todo, la prueba seguiría pasando | Los totales exactos de P4 (50.000, 35.000 y 85.000) salen de la regla |
+| 4 | `test_items_invalidos_lanzan_error` | 2 | Corregida | `pytest.raises(Exception)` acepta cualquier error, incluso el TypeError del hallazgo H-03 de la semana 6, y no revisa el mensaje | `pytest.raises(ValueError, match=...)` con el mensaje exacto de la regla en cada fila |
+| 5 | Fila P9 con precio -5.000 | 3 | Descartada | Misma partición que -1, y -1 además prueba el borde | Fila "P9 y L1: -1" |
+| 6 | Fila P14 con cantidad -1 | 3 | Descartada | Misma partición que 0, y 0 es el borde | Fila "P14 y L3: cero" |
+| 7 | `test_orden_con_datos_sinteticos` | 1 y 2 | Corregida | Comparaba el total con la suma de los subtotales que da el mismo código | Esperado calculado a mano: 195.000, 65.000 y 260.000 |
+| 8 | `test_placas_validas`, fila "L5 longitud 6" (ABC12D) | 3 | Descartada | Idéntica a la fila V1 | V1 cubre L5, L6 y L7 |
+| 9 | `test_placas_validas`, fila "L4 longitud 5" (ABC12) | 3 | Descartada | Misma partición que V2: placa antigua de 5 caracteres | V2 (MOT09) cubre L4 y L8 |
+| 10 | `test_placas_invalidas` | 2 | Corregida | No tenía comentario por fila, como exige la tarea, y solo revisaba el tipo de error | Comentario con la partición o el límite de cada fila y `match` con el mensaje de formato |
+| 11 | `test_placa_none` | 2 | Corregida | No revisaba el mensaje y faltaba el número 12345 de la partición I7 | Parametrizada con None y 12345 y el mensaje "La placa debe ser texto" |
+| 12 | `test_placas_sinteticas` | 2 | Corregida | `assert validar_placa(...)` solo comprueba que devuelva algo, y saltaba las placas inválidas | Dos pruebas: las válidas se comparan con la placa exacta y las inválidas exigen el ValueError |
+| 13 | `test_tabla_de_decision`, columna 1 | 2 | Corregida | `assert resumen.total > 0` pasaría con IVA o con cualquier total | Prueba propia que exige `ResumenCobro(18000, 0, 18000)` y que la orden tenga el ítem |
+| 14 | `test_tabla_de_decision`, columnas 2 a 8 | 2 | Corregida | No revisaba qué AccesoDenegado salía ni que la orden quedara igual; agregar el ítem antes de validarlo habría pasado | `match` con el mensaje de rol o de asignación y `orden.items == []`. La mutación M6 confirmó que ahora falla |
+| 15 | `test_tabla_de_decision` | Diseño | Corregida | Tenía un if dentro de la prueba que decidía qué comprobar | Una prueba para el éxito y otra parametrizada para los rechazos |
+| 16 | Faltaba | 1 | Agregada | La tabla separa la orden sin mecánico y el borrador no la probaba | Fila "C2 sin mecánico" |
+| 17 | Faltaba | 2 | Agregada | La mutación M5 sobrevivió: nada probaba un decimal con parte decimal cero | Filas P18 (18000.0) y P19 (2.0), commit a138743 |
+
+**Resumen:** de 70 pruebas del borrador se descartaron 7 filas o pruebas, se corrigieron 8 y se agregaron 3 filas. La suite final de la semana 7 tiene 50 pruebas, y con las 20 de las semanas 5 y 6 son 70.
+
+**Ningún esperado se ajustó al código.** Ninguna prueba falló contra el código, así que no hubo que decidir entre corregir el código o la prueba, y no apareció ningún defecto nuevo. Donde una prueba no fallaba al romper el código, se agregó el caso.
+
+## 3. Romper el código a propósito
+
+Cada error se introdujo solo, se corrieron todas las pruebas con `pytest` y se deshizo con `git restore`. Las líneas son las de la rama `semana-7-pruebas`.
+
+| # | Error introducido | Archivo y línea | Pruebas que fallaron | Resultado |
+|---|---|---|---|---|
+| M1 | `precio_unitario < 0` cambia a `<= 0`, así que el precio 0 se rechaza | app/cobros/calculo.py:77 | 4: la de precio cero de la semana 5, la fila P10 y L1 y las dos de datos sintéticos | Atrapado |
+| M2 | El total se multiplica por 1,19, como si se cobrara IVA | app/cobros/calculo.py:55 | 12 de las semanas 5, 6 y 7 | Atrapado |
+| M3 | La verificación de permisos siempre deja pasar (`return` al inicio) | app/cobros/servicio.py:40 | 11: tres pruebas de abuso de la semana 6 y ocho de la tabla de decisión | Atrapado |
+| M4 | La placa acepta uno o dos números (`[0-9]{1,2}`) | app/ingresos/placas.py:8 | 2: ABC1 (L4) y ABC1D (L6) | Atrapado |
+| M5 | `_es_entero` acepta decimales con parte decimal cero, como 18000.0 | app/cobros/calculo.py:97 | Ninguna | No atrapado: se agregaron P18 y P19; con ellas fallan 2 pruebas |
+| M6 | El ítem se agrega a la orden antes de validarlo | app/cobros/servicio.py:38 | 2: la de la semana 6 y la columna 2 de la tabla de decisión | Atrapado |
+| M7 | La placa no se pasa a mayúsculas | app/ingresos/placas.py:32 | 2: la fila V3 (abc12d) y la de placas sintéticas válidas | Atrapado |
+
+## 4. Datos de prueba sintéticos
+
+**Origen.** Los generó Claude el 2026-11-27 con este prompt: "Genera datos sintéticos para las pruebas de un taller de motos en Colombia: seis ítems de cobro (repuestos y mano de obra) y seis motos con placa, marca, cliente y teléfono. Sin personas reales y con teléfonos ficticios con 555. Incluye tildes, ñ, apóstrofo, texto vacío, un precio en cero y placas en minúsculas, con espacios, con guion y con Ñ. Para cada placa indica la placa esperada según la regla, o null si es inválida." Revisé cada placa esperada contra la regla de la sección 1.2 y cada total a mano. Ningún nombre corresponde a una persona real ni a mí ni a mi familia.
+
+**Contexto local.** Repuestos comunes en motos de Colombia (piñón, guaya del clutch, kit de arrastre), las marcas que atiende el taller (Bajaj, AKT, Honda, Yamaha, Kymco y Suzuki), placas con el formato colombiano y teléfonos celulares de 10 dígitos.
+
+| Caso difícil | Dónde aparece |
+|---|---|
+| Tildes | "Sincronización y revisión eléctrica", María, Ángel, Sofía |
+| Ñ | "Piñón de arrastre", Begoña Ñáñez, Muñoz, Peñaloza y la placa ÑKY12C |
+| Apóstrofo | "Kit de arrastre D'Luca (marca ficticia)" y José D'Alessandro |
+| Texto vacío | Descripción de una mano de obra (ambigüedad A5), un cliente y una placa vacíos |
+| Valores en cero | "Llanta trasera que trajo el cliente" con precio 0 |
+| Placas difíciles | akt45m en minúsculas, " HND08 " antigua con espacios y YMH-34K con guion |
+
+**Fixture.** `tests/datos/datos_sinteticos.json` se carga en `tests/conftest.py` con las fixtures `datos_sinteticos`, `items_sinteticos` y `motos_sinteticas`. Las usan cuatro pruebas: la orden sintética que suma 260.000, las placas sintéticas válidas e inválidas, el registrador que no puede registrar cobros y el mecánico que registra toda la orden.
+
+## 5. Cómo ejecutar
+
+```
+pip install -r requirements-dev.txt
+python -m pytest -v
+```
+
+Resultado: 70 pruebas en verde. GitHub Actions las corre en cada envío junto con ruff y pip-audit.
