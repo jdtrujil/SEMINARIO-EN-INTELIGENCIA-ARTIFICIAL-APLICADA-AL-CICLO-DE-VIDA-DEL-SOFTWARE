@@ -27,8 +27,20 @@ jobs:
       - name: Auditoría de dependencias (pip-audit)
         run: pip-audit -r requirements-dev.txt
 
-      - name: Pruebas
-        run: python -m pytest -v
+      - name: Pruebas con cobertura de líneas y de ramas
+        run: python -m pytest -v --cov=app --cov-branch --cov-report=term-missing
 
       - name: Ejemplo ejecutable
         run: python -m app.cobros
+
+      - name: Prueba de humo de la versión web
+        run: |
+          python -m app.web &
+          PID=$!
+          for intento in 1 2 3 4 5; do
+            curl -fs http://127.0.0.1:8000/salud && break
+            sleep 1
+          done
+          test "$(curl -fs http://127.0.0.1:8000/salud)" = "ok"
+          curl -fs http://127.0.0.1:8000/ | grep -q "Taller Dos Ruedas"
+          kill $PID
