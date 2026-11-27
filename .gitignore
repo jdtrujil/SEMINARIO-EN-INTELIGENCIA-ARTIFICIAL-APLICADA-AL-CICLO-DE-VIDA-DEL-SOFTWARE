@@ -1,6 +1,8 @@
 # Variables de entorno y secretos: nunca se suben
 .env
 .env.*
+# La plantilla sin valores reales sí se sube
+!.env.example
 
 # Entornos virtuales
 .venv/

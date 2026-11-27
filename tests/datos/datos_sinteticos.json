@@ -1,0 +1,19 @@
+{
+  "origen": "Datos sintéticos generados con Claude el 2026-11-27 con contexto de un taller de motos en Colombia. Ninguna persona, placa ni teléfono es real; los teléfonos usan el prefijo 555, que no se asigna a líneas reales.",
+  "items_orden": [
+    {"tipo": "repuesto", "descripcion": "Piñón de arrastre de 14 dientes", "cantidad": 1, "precio_unitario": 38000},
+    {"tipo": "repuesto", "descripcion": "Guaya del clutch para AKT", "cantidad": 1, "precio_unitario": 15000},
+    {"tipo": "repuesto", "descripcion": "Kit de arrastre D'Luca (marca ficticia)", "cantidad": 1, "precio_unitario": 142000},
+    {"tipo": "repuesto", "descripcion": "Llanta trasera que trajo el cliente", "cantidad": 1, "precio_unitario": 0},
+    {"tipo": "mano de obra", "descripcion": "Sincronización y revisión eléctrica", "cantidad": 1, "precio_unitario": 45000},
+    {"tipo": "mano de obra", "descripcion": "", "cantidad": 1, "precio_unitario": 20000}
+  ],
+  "motos": [
+    {"placa": "BJX27F", "marca": "Bajaj", "cliente": "Begoña Ñáñez Rincón", "telefono": "311 555 0147", "placa_esperada": "BJX27F"},
+    {"placa": "akt45m", "marca": "AKT", "cliente": "José D'Alessandro", "telefono": "300 555 0198", "placa_esperada": "AKT45M"},
+    {"placa": " HND08 ", "marca": "Honda", "cliente": "María Fernanda Ospina Gómez", "telefono": "320 555 0111", "placa_esperada": "HND08"},
+    {"placa": "YMH-34K", "marca": "Yamaha", "cliente": "Ángel Muñoz", "telefono": "315 555 0162", "placa_esperada": null},
+    {"placa": "ÑKY12C", "marca": "Kymco", "cliente": "Sofía Peñaloza", "telefono": "318 555 0175", "placa_esperada": null},
+    {"placa": "", "marca": "Suzuki", "cliente": "", "telefono": "301 555 0109", "placa_esperada": null}
+  ]
+}
