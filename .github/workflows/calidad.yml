@@ -1,0 +1,34 @@
+# Revisión automática en cada envío: linter, auditoría de dependencias y pruebas
+name: Calidad
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  revision:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar herramientas de desarrollo
+        run: pip install -r requirements-dev.txt
+
+      - name: Linter (ruff con reglas E, F, B y S)
+        run: ruff check --select E,F,B,S .
+
+      - name: Auditoría de dependencias (pip-audit)
+        run: pip-audit -r requirements-dev.txt
+
+      - name: Pruebas
+        run: python -m unittest discover -v
+
+      - name: Ejemplo ejecutable
+        run: python -m app.cobros
