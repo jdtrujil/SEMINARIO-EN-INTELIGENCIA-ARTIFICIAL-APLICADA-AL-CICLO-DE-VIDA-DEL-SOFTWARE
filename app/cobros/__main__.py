@@ -5,13 +5,9 @@ mecánico asignado y muestra el cobro. Después muestra que otro mecánico no
 puede registrar cobros en esa orden.
 """
 from app.cobros.errores import AccesoDenegado
+from app.cobros.formato import pesos
 from app.cobros.modelos import ROL_MECANICO, ItemCobro, Orden, Trabajador
 from app.cobros.servicio import registrar_item
-
-
-def pesos(valor: int) -> str:
-    """Formatea un valor en pesos con punto de miles, por ejemplo 85.000."""
-    return f"{valor:,}".replace(",", ".")
 
 
 def main() -> None:
