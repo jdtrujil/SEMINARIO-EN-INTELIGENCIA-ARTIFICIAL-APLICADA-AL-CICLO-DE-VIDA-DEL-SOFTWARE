@@ -7,13 +7,20 @@ tamaño del formulario y no anunciar la versión de Python.
 """
 
 import http.client
+import sys
 import threading
 
 import pytest
 
 from app.ingresos.placas import MENSAJE_FORMATO
 from app.web.paginas import pagina_inicio, procesar_cobro, procesar_placa
-from app.web.servidor import TAMANO_MAXIMO, crear_servidor, leer_configuracion
+from app.web.servidor import (
+    MAXIMO_CAMPOS,
+    TAMANO_MAXIMO,
+    crear_servidor,
+    leer_configuracion,
+    main,
+)
 
 
 def fila(numero, tipo="repuesto", descripcion="", cantidad="1", precio=""):
@@ -248,3 +255,39 @@ def test_formulario_demasiado_grande_responde_413(servidor):
 def test_ruta_que_no_existe_responde_404(servidor, metodo, ruta):
     respuesta, _ = pedir(servidor, metodo, ruta, "x=1" if metodo == "POST" else None)
     assert respuesta.status == 404
+
+
+# --- Agregadas por la columna Missing del reporte de cobertura (semana 8) ---
+
+
+@pytest.mark.skipif(
+    sys.version_info < (3, 11), reason="el límite de dígitos llegó en 3.11"
+)
+def test_precio_con_miles_de_digitos_se_rechaza_sin_romper_la_pagina():
+    codigo, pagina = procesar_cobro(fila(1, precio="9" * 5000))
+    assert codigo == 422
+    assert "Fila 1: El precio debe ser un número entero de pesos" in pagina
+
+
+def test_main_con_puerto_invalido_termina_con_codigo_1_y_explica_el_error(capsys):
+    assert main({"TALLER_PUERTO": "0"}) == 1
+    error = capsys.readouterr().err
+    assert "No se pudo iniciar el servidor: TALLER_PUERTO debe ser" in error
+
+
+def test_post_sin_tamano_del_formulario_responde_411(servidor):
+    conexion = http.client.HTTPConnection("127.0.0.1", servidor, timeout=5)
+    conexion.putrequest("POST", "/placa")
+    conexion.endheaders()
+    respuesta = conexion.getresponse()
+    texto = respuesta.read().decode("utf-8")
+    conexion.close()
+    assert respuesta.status == 411
+    assert "Falta el tamaño del formulario." in texto
+
+
+def test_formulario_con_demasiados_campos_responde_413(servidor):
+    cuerpo = "&".join(f"c{numero}=1" for numero in range(MAXIMO_CAMPOS + 1))
+    respuesta, texto = pedir(servidor, "POST", "/cobro", cuerpo)
+    assert respuesta.status == 413
+    assert "El formulario tiene demasiados campos." in texto
