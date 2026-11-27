@@ -185,11 +185,49 @@ Cada error se introdujo solo, se corrieron todas las pruebas con `pytest` y se d
 
 **Fixture.** `tests/datos/datos_sinteticos.json` se carga en `tests/conftest.py` con las fixtures `datos_sinteticos`, `items_sinteticos` y `motos_sinteticas`. Las usan cuatro pruebas: la orden sintética que suma 260.000, las placas sintéticas válidas e inválidas, el registrador que no puede registrar cobros y el mecánico que registra toda la orden.
 
-## 5. Cómo ejecutar
+## 5. Cobertura y mutación (semana 8)
+
+### 5.1 Cobertura de líneas y de ramas
+
+El pipeline mide la cobertura con pytest-cov en cada envío (`--cov=app --cov-branch --cov-report=term-missing`). Valores de la ejecución con Python 3.13:
+
+| Archivo | Antes ([46064096065](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/actions/runs/46064096065)) | Después ([46064631239](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/actions/runs/46064631239)) | Missing después |
+|---|---|---|---|
+| app/cobros/calculo.py | 100 % (14 ramas) | 100 % | Nada |
+| app/cobros/servicio.py | 100 % (4 ramas) | 100 % | Nada |
+| app/ingresos/placas.py | 100 % (4 ramas) | 100 % | Nada |
+| app/web/paginas.py | 98 % | 100 % | Nada |
+| app/web/servidor.py | 79 % | 91 % | 126, 154, 161-168 |
+| app/cobros/\_\_main\_\_.py y app/web/\_\_main\_\_.py | 0 % | 0 % | Todo |
+| **Total** | **83 %** | **87 %** | |
+
+**Qué mostró la columna Missing y qué se hizo:**
+
+- `servidor.py` 92-94 y 105-107, y `paginas.py` 191-192: eran ramas de seguridad que ninguna prueba ejecutaba. Son el formulario sin tamaño (411), el que tiene demasiados campos (413) y un precio con miles de dígitos que Python no convierte. También faltaba el arranque con un puerto inválido. Se agregaron 4 pruebas (commit [380ead2](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/commit/380ead2)) sin cambiar el código.
+- `servidor.py` 154 y 161-168 son el ciclo que arranca el servidor y espera Ctrl+C, y la línea 126 es el registro de avisos de `http.server`. No se prueban con pytest, porque el arranque real lo comprueban la prueba de humo y el trabajo del contenedor del pipeline, y el despliegue en el PC.
+- Los dos `__main__.py` son demos. El pipeline los ejecuta, pero fuera de la medición. Subirlos al 100 % no comprobaría ninguna regla, así que no vale el esfuerzo.
+
+### 5.2 La cobertura dice qué se ejecutó, no qué se comprobó
+
+`calculo.py` tenía 100 % de líneas y de ramas, y aun así la mutación M5 de la sección 3 sobrevivió: ninguna prueba probaba un 18000.0. La prueba de la IA `test_total_es_la_suma_de_los_subtotales`, descartada en la sección 2, ejecutaba las mismas líneas que las pruebas buenas. Sin embargo, con el IVA aplicado a los subtotales seguía pasando (bitácora, entrada 28). Una línea cubierta no es una línea comprobada.
+
+### 5.3 Puntuación de mutación
+
+Las mutaciones se hicieron a mano, una por una, y se deshicieron con `git restore`. La semana 8 explica que mutmut automatiza este proceso y que en este seminario basta con hacerlo a mano en las funciones críticas.
+
+| Conjunto | Mutantes | Muertos | Puntuación | Notas |
+|---|---|---|---|---|
+| Reglas, semana 7 (M1 a M7) | 7 | 6 | 86 % | M5 sobrevivió con 100 % de cobertura |
+| Reglas, después de agregar P18 y P19 | 7 | 7 | 100 % | Commit [a138743](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/commit/a138743) |
+| Versión web (W1 a W4) | 4 | 4 | 100 % | W1: sin escapar la descripción (1 prueba falla). W2: sin quitar el punto de miles (2). W3: sin límite de tamaño (1). W4: escuchar en 0.0.0.0 (2 pruebas, y ruff S104) |
+
+No se encontraron mutantes equivalentes.
+
+## 6. Cómo ejecutar
 
 ```
 pip install -r requirements-dev.txt
 python -m pytest -v
 ```
 
-Resultado: 70 pruebas en verde. GitHub Actions las corre en cada envío junto con ruff y pip-audit.
+Resultado: 104 pruebas en verde. Con cobertura: `python -m pytest --cov=app --cov-branch --cov-report=term-missing`. GitHub Actions las corre en cada envío, con Python 3.12 y 3.13, junto con ruff, pip-audit, la prueba de humo y el contenedor.
