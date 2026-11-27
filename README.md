@@ -72,11 +72,12 @@ En Windows, si `python` no responde, usa `py` en su lugar.
 python -m pytest -v
 ```
 
-Corre las 104 pruebas:
+Corre las 107 pruebas:
 
 - 10 de la semana 5 y 10 de la semana 6, escritas con unittest (pytest también las ejecuta).
 - 50 de la semana 7, diseñadas con particiones de equivalencia, valores límite y una tabla de decisión, para tres funciones: `calcular_cobro`, `validar_placa` y `registrar_item`.
 - 34 de la versión web (`tests/test_web.py`), con un servidor real en un puerto libre.
+- 3 de aceptación (`tests/test_aceptacion.py`), una por cada escenario construido de las historias, con los datos exactos de sus criterios Gherkin.
 
 Cobertura de líneas y de ramas (semana 8):
 

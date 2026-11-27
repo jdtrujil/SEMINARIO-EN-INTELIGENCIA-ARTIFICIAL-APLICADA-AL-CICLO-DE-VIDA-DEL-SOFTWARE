@@ -19,7 +19,7 @@ Antes de escribir código, el proyecto ya usaba IA en cada entrega. El detalle d
 | 7 | Este repositorio: suite de pruebas y `registro_pruebas.md` | Entradas 23 a 31 de esta bitácora | Cuatro reglas inventadas descartadas, 17 decisiones sobre las pruebas de la IA y un error introducido que ninguna prueba atrapó hasta agregar dos casos |
 | 8 | Este repositorio: cobertura y mutación | Entradas 33 y 34 | La columna Missing mostró 4 ramas de seguridad sin probar; 100 % de cobertura no evitó que sobreviviera un mutante |
 | 9 | Este repositorio: pipeline y Dockerfile | Entradas 35 a 38 | Cuatro hallazgos en el pipeline de la semana 6, actionlint frenó una corrección del agente y la práctica de clase se rechazó con 12 problemas |
-| 10 | Versión web, docs/, informe y sustentación | Entradas 32 y 39 a 42 | La prueba de la cabecera Server encontró un error del código generado; cada dato del informe se comprobó contra su fuente |
+| 10 | Versión web, docs/, informe y sustentación | Entradas 32 y 39 a 43 | La prueba de la cabecera Server encontró un error del código generado; cada dato del informe se comprobó contra su fuente |
 
 ## Entradas de la semana 5
 
@@ -407,14 +407,23 @@ Antes de escribir código, el proyecto ya usaba IA en cada entrega. El detalle d
 - **Verificación:** Abrí cada archivo en la línea citada (por ejemplo, `calculo.py:73` y `servicio.py:37-39`) y comprobé contra el ADR-002 y la sección 5 del registro de pruebas lo que dice cada respuesta.
 - **Commit relacionado:** [docs/entrega_final/preguntas_sustentacion.md](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/entrega_final/preguntas_sustentacion.md)
 
+### Entrada 43
+
+- **Fecha:** 2026-11-27
+- **Prompt o sugerencia:** "Haz la presentación con el mismo esquema de esta referencia, teniendo en cuenta mi proyecto, con una plantilla azul y gris, y edita el informe y la sustentación." La referencia tiene 8 diapositivas: portada, problema y solución, ciclo de vida, lo que la IA hizo mal, cómo verifiqué, operación, evaluación de las historias de usuario, y ética y aprendizajes.
+- **Decisión:** Aceptada con cambios
+- **Por qué:** El esquema pedía dos datos que el proyecto no había medido, y se midieron antes de ponerlos en una diapositiva. El primero es la evaluación de los 20 escenarios de las historias. Se escribió una prueba de aceptación por cada escenario construido, con sus datos exactos: se cumplen 2, 1 en parte y 17 están sin construir. El segundo es cuántos errores se le habrían escapado al borrador de pruebas de la IA. Los 7 errores de las reglas se corrieron contra el borrador del commit 47b4e8a: atrapó 5 y dejó pasar el M5 y el M6. El cambio vino después de ver las diapositivas renderizadas: se acortaron tres títulos que ocupaban dos líneas.
+- **Verificación:** 107 pruebas en verde. Cada escenario se comparó con el documento de requisitos de la semana 3. La medición del borrador se hizo en una copia aparte del código, sin tocar el repositorio. La presentación pasó la validación de PowerPoint y se revisaron las 8 diapositivas como imágenes. El informe, el registro de pruebas y el README quedaron con las mismas cifras.
+- **Commit relacionado:** Rama `sustentacion-esquema`, solicitud de cambios #4 ([tests/test_aceptacion.py](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/tests/test_aceptacion.py))
+
 ## Resumen
 
 | Decisión | Semana 5 | Semana 6 | Semana 7 | Entrega final (8 a 10) | Total |
 |---|---|---|---|---|---|
 | Aceptadas | 2 | 10 | 5 | 6 | 23 |
-| Aceptadas con cambios | 2 | 4 | 2 | 4 | 12 |
+| Aceptadas con cambios | 2 | 4 | 2 | 5 | 13 |
 | Rechazadas | 2 | 2 | 2 | 1 | 7 |
-| **Entradas** | 6 | 16 | 9 | 11 | **42** |
+| **Entradas** | 6 | 16 | 9 | 12 | **43** |
 
 ## Errores que atraparon las pruebas
 

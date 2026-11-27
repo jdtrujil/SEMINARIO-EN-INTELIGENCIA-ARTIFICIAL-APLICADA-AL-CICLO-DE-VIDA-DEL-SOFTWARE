@@ -13,7 +13,7 @@ El Taller Dos Ruedas (nombre ficticio) registra el ingreso de las motos en un cu
 - La validación de la placa de la moto (HU-01).
 - Una versión web local que se despliega con Python o en un contenedor. El pipeline la construye y la prueba en cada envío.
 
-Usé Claude en las seis fases: prompts y propuesta, requisitos, diseño, código, pruebas y operación. Cada resultado quedó registrado en una bitácora de 42 entradas, y 7 de esas sugerencias se rechazaron. La verificación encontró errores de la IA en cada fase:
+Usé Claude en las seis fases: prompts y propuesta, requisitos, diseño, código, pruebas y operación. Cada resultado quedó registrado en una bitácora de 43 entradas, y 7 de esas sugerencias se rechazaron. La verificación encontró errores de la IA en cada fase:
 
 - **Requisitos:** citas inventadas.
 - **Diseño:** microservicios para 25 motos al día y datos personales que nadie pidió.
@@ -21,7 +21,7 @@ Usé Claude en las seis fases: prompts y propuesta, requisitos, diseño, código
 - **Pruebas:** pruebas que pasaban sin comprobar nada.
 - **Operación:** un pipeline con acciones sin fijar y sin límite de tiempo.
 
-El resultado final son 104 pruebas en verde, con 100 % de cobertura de líneas y de ramas en las reglas del negocio y 100 % de mutantes detectados en ellas.
+El resultado final son 107 pruebas en verde, con 100 % de cobertura de líneas y de ramas en las reglas del negocio y 100 % de mutantes detectados en ellas. De los 20 escenarios de las historias de usuario se cumplen 2, uno más se cumple en parte y 17 no se han construido.
 
 ## 2. Problema y usuario
 
@@ -79,7 +79,7 @@ La herramienta fue Claude (Anthropic) en dos modos: chat para los documentos y a
 - **Fase:** pruebas (semanas 7 y 8).
 - **Qué propuso la IA:** un borrador de 50 pruebas en pytest, todas en verde (commit [47b4e8a](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/commit/47b4e8a)). Entre ellas, `pytest.raises(Exception)` sin mensaje, `assert resumen.total > 0` y `test_total_es_la_suma_de_los_subtotales`, que calculaba el esperado con el mismo código que probaba.
 - **Qué estaba mal:** varias pruebas no fallaban al romper el código. Con el IVA del 19 % aplicado a los subtotales, la prueba de la suma seguía pasando, y `pytest.raises(Exception)` aceptaba hasta el TypeError del hallazgo H-03.
-- **Cómo lo detecté:** apliqué tres preguntas a cada prueba (¿el esperado sale de la regla?, ¿fallaría si rompo el código?, ¿repite otra prueba?) y rompí el código a propósito. Con la mutación del IVA en los subtotales, la prueba de la IA pasó y la suite revisada tuvo 12 fallos (bitácora, entrada 28). Además, la mutación M5, que acepta un precio 18000.0, sobrevivió aunque `calculo.py` tenía 100 % de cobertura de líneas y de ramas.
+- **Cómo lo detecté:** apliqué tres preguntas a cada prueba (¿el esperado sale de la regla?, ¿fallaría si rompo el código?, ¿repite otra prueba?) y rompí el código a propósito. Con la mutación del IVA en los subtotales, la prueba de la IA pasó y la suite revisada tuvo 12 fallos (bitácora, entrada 28). Además, la mutación M5, que acepta un precio 18000.0, sobrevivió aunque `calculo.py` tenía 100 % de cobertura de líneas y de ramas. Para medir el borrador sin revisar, corrí contra él los 7 errores de las reglas: atrapó 5 y dejó pasar 2, el M5 y el M6, que agrega el ítem a la orden antes de validarlo ([registro_pruebas.md, sección 5.3](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/registro_pruebas.md)).
 - **Qué hice:**
   - Descarté 7 pruebas o filas y corregí 8 con el mensaje exacto de cada error y los totales calculados a mano (commit [3051ed9](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/commit/3051ed9)).
   - Agregué los casos P18 y P19 para matar la mutación M5 (commit [a138743](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/commit/a138743)).
@@ -107,16 +107,19 @@ La herramienta fue Claude (Anthropic) en dos modos: chat para los documentos y a
 ## 5. Estado final del sistema
 
 - **Arquitectura:** monolito modular en Python, con un módulo por carpeta en `app/` ([ADR-001](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/03_diseno/adr/ADR-001-monolito-modular.md)). Para desplegar sin base de datos ni paquetes externos, la entrega final agrega una versión web local con la biblioteca estándar ([ADR-003](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/03_diseno/adr/ADR-003-version-web-local.md)). Escucha solo en el equipo, no guarda datos, escapa todo lo que escribe el usuario y tiene `/salud` para la operación. FastAPI, PostgreSQL y React siguen previstos para cuando exista la base de datos.
-- **Funcionalidades terminadas (historias Must):**
+- **Funcionalidades terminadas.** Cada escenario Gherkin de la semana 3 se evaluó con sus datos exactos. Los que están construidos tienen su prueba de aceptación en [tests/test_aceptacion.py](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/tests/test_aceptacion.py). Se cumplen 2 de 20 escenarios, 1 se cumple en parte y 17 no se han construido:
 
-  | Historia | Estado |
+  | Historia | Resultado |
   |---|---|
-  | HU-07 Registrar repuestos y mano de obra | Terminada como regla de negocio: cálculo sin IVA y solo el mecánico asignado registra cobros. La página calcula el cobro. Falta guardarlo en la base de datos |
-  | HU-01 Registrar el ingreso | Parcial: validación de la placa con los formatos ABC12D y ABC12, también en la página. Falta guardar la moto y el dueño |
-  | HU-02 Estado de llegada, HU-03 Número de orden, HU-04 Consulta del cliente y HU-06 Cambio de estado | Pendientes. HU-03 y HU-04 están diseñadas en el ADR-002 |
+  | HU-07 Registrar repuestos y mano de obra (Must) | Cumple 2 de 2: total sin IVA de 85.000 y repuesto sin precio que no se agrega. Se guarda en memoria; falta la base de datos |
+  | HU-08 Detalle del cobro (Should) | 1 en parte: la página muestra cada ítem y el total, pero aún no existen los estados de la orden. 1 sin construir: la moto que no está lista |
+  | HU-01 Registrar el ingreso (Must) | Sin construir. Existe la validación de la placa, que la historia no tiene como escenario |
+  | HU-03 Número de orden y HU-04 Consulta del cliente (Must) | Sin construir. Diseñadas en el ADR-002 |
+  | HU-02 Estado de llegada y HU-06 Cambio de estado (Must) | Sin construir |
+  | HU-05 Asignar mecánico y HU-10 Entrega (Should), HU-09 Historial (Could) | Sin construir |
 
 - **Pruebas:**
-  - 104 pruebas: 20 de las semanas 5 y 6, 50 de la semana 7 y 34 de la versión web.
+  - 107 pruebas: 20 de las semanas 5 y 6, 50 de la semana 7, 34 de la versión web y 3 de aceptación.
   - Cobertura en el pipeline: 100 % de líneas y de ramas en `calculo.py`, `servicio.py`, `placas.py` y `paginas.py`, y 87 % del total. Lo que falta son los demos y el ciclo de arranque del servidor, que se prueban con la prueba de humo y el contenedor.
   - Mutación a mano: 11 de 11 mutantes detectados.
   - [Última ejecución del pipeline en `main`](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/actions/workflows/calidad.yml?query=branch%3Amain), en verde con Python 3.12, 3.13 y el contenedor. Antes de integrar, la [ejecución 46065039912](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/actions/runs/46065039912) de la rama `entrega-final` también salió en verde.
@@ -159,7 +162,7 @@ La herramienta fue Claude (Anthropic) en dos modos: chat para los documentos y a
 
 ## 8. Anexos
 
-- Bitácora de uso de IA: [bitacora_ia.md](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/bitacora_ia.md), 42 entradas de las semanas 5 a 10, más el recorrido de las semanas 2 a 4.
+- Bitácora de uso de IA: [bitacora_ia.md](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/bitacora_ia.md), 43 entradas de las semanas 5 a 10, más el recorrido de las semanas 2 a 4.
 - Documentos de cada módulo: [índice de docs/](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/README.md).
   - [Propuesta](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/01_fundamentos/propuesta.md).
   - [Requisitos](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/02_requisitos/Trujillo_Juan_S3_Requisitos.pdf).

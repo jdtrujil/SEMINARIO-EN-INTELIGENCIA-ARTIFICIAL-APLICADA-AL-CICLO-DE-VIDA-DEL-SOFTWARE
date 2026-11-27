@@ -60,7 +60,7 @@ Sí, por cuatro razones:
 
 - Usa solo la biblioteca estándar de Python.
 - Cada regla está escrita en `registro_pruebas.md` con su tabla de casos.
-- 104 pruebas me avisan si rompo algo.
+- 107 pruebas me avisan si rompo algo.
 - Las decisiones están en los ADR y en la bitácora.
 
 La IA aceleró el trabajo, pero cada línea pasó por una prueba o por una revisión mía.
