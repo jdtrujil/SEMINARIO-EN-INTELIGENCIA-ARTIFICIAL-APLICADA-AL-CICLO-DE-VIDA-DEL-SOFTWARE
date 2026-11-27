@@ -5,12 +5,19 @@ El taller no cobra IVA (necesidad N-06).
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Optional
+from typing import List
 
-REPUESTO = "repuesto"
-MANO_DE_OBRA = "mano de obra"
-TIPOS_VALIDOS = (REPUESTO, MANO_DE_OBRA)
+from app.cobros.modelos import (
+    MANO_DE_OBRA,
+    REPUESTO,
+    TIPOS_VALIDOS,
+    ItemCobro,
+    ResumenCobro,
+)
+
+# Se reexportan para que el código existente pueda seguir importándolos desde aquí
+__all__ = ["CANTIDAD_MINIMA", "ItemCobro", "ResumenCobro", "calcular_cobro"]
+
 CANTIDAD_MINIMA = 1
 MENSAJE_SIN_PRECIO = {
     REPUESTO: "Escriba el precio del repuesto",
@@ -18,26 +25,7 @@ MENSAJE_SIN_PRECIO = {
 }
 
 
-@dataclass(frozen=True)
-class ItemCobro:
-    """Un repuesto o un trabajo de mano de obra registrado en una orden."""
-
-    tipo: str
-    descripcion: str
-    cantidad: int
-    precio_unitario: Optional[int]
-
-
-@dataclass(frozen=True)
-class ResumenCobro:
-    """Totales de una orden, en pesos enteros y sin IVA."""
-
-    total_repuestos: int
-    total_mano_obra: int
-    total: int
-
-
-def calcular_cobro(items: list[ItemCobro]) -> ResumenCobro:
+def calcular_cobro(items: List[ItemCobro]) -> ResumenCobro:
     """Suma los repuestos y la mano de obra de una orden, sin IVA.
 
     Primero valida todos los ítems y después calcula, así una orden con un
@@ -78,7 +66,7 @@ def _es_entero(valor: object) -> bool:
     return isinstance(valor, int) and not isinstance(valor, bool)
 
 
-def _subtotal_por_tipo(items: list[ItemCobro], tipo: str) -> int:
+def _subtotal_por_tipo(items: List[ItemCobro], tipo: str) -> int:
     """Suma cantidad por precio unitario de los ítems de un tipo."""
     return sum(
         item.cantidad * item.precio_unitario for item in items if item.tipo == tipo
