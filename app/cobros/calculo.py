@@ -63,10 +63,19 @@ def _validar_item(item: ItemCobro) -> None:
         )
     if item.precio_unitario is None:
         raise ValueError(MENSAJE_SIN_PRECIO[item.tipo])
+    if not _es_entero(item.precio_unitario):
+        raise ValueError("El precio debe ser un número entero de pesos")
     if item.precio_unitario < 0:
         raise ValueError("El precio no puede ser negativo")
+    if not _es_entero(item.cantidad):
+        raise ValueError("La cantidad debe ser un número entero")
     if item.cantidad < CANTIDAD_MINIMA:
         raise ValueError("La cantidad debe ser al menos 1")
+
+
+def _es_entero(valor: object) -> bool:
+    """Indica si el valor es un int de verdad; True y False no cuentan."""
+    return isinstance(valor, int) and not isinstance(valor, bool)
 
 
 def _subtotal_por_tipo(items: list[ItemCobro], tipo: str) -> int:
