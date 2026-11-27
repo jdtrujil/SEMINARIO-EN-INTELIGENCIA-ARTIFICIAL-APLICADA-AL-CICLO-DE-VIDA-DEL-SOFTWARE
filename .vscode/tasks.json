@@ -1,0 +1,26 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Ejecutar pruebas",
+      "type": "shell",
+      "command": "python -m unittest discover -v",
+      "windows": {
+        "command": "if (Get-Command py -ErrorAction SilentlyContinue) { py --version; py -m unittest discover -v } else { python --version; python -m unittest discover -v }",
+        "options": {
+          "shell": { "executable": "powershell.exe", "args": ["-NoProfile", "-Command"] }
+        }
+      },
+      "group": { "kind": "test", "isDefault": true },
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Ver historial de commits",
+      "type": "shell",
+      "command": "git --no-pager log --oneline --decorate",
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true },
+      "problemMatcher": []
+    }
+  ]
+}

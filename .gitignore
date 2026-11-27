@@ -1,0 +1,12 @@
+# Variables de entorno y secretos: nunca se suben
+.env
+.env.*
+
+# Entornos virtuales
+.venv/
+venv/
+
+# Archivos generados por Python y las pruebas
+__pycache__/
+*.pyc
+.pytest_cache/
