@@ -51,4 +51,24 @@ Cada despliegue sigue la [guía de despliegue](guia_despliegue.md) y se comprueb
 
 ## 3. PC con Windows del estudiante
 
-Pendiente. Se hará con la opción A de la guía (Python 3.13, `py -m app.web`) y se registrará aquí con la fecha, la versión, el resultado de las pruebas y las capturas.
+- **Fecha:** 2026-11-27
+- **Versión:** la de `main` después de la solicitud de cambios #3 (versión web sin base de datos).
+- **Cómo:** con `desplegar_windows.bat` (opción A de la guía).
+- **Resultado:** la página abrió y validó la placa.
+- **Lo que mostró el uso real:** al usarla como en el taller encontré que no guardaba la factura ni los datos, no dejaba elegir el mecánico y no mostraba las etapas de la moto. Ese pedido llevó a construir el módulo de órdenes con PostgreSQL ([ADR-004](../03_diseno/adr/ADR-004-persistencia-y-etapas.md)).
+
+## 4. Verificación del módulo de órdenes
+
+- **Fecha:** 2026-11-27
+- **Versión:** rama `registro-de-motos`, commit ebe82b9.
+- **En el pipeline:**
+  - Las pruebas de las órdenes corrieron contra PostgreSQL 16 en la [ejecución 46084960626](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/actions/runs/46084960626): 221 pruebas en verde.
+  - El contenedor se construyó y respondió `/salud`.
+- **En el equipo de desarrollo (SQLite, mecánicos ficticios):**
+  - Se registraron dos motos.
+  - Una pasó por las tres etapas con su factura de $ 85.000.
+  - La consulta del cliente mostró el total sin la placa.
+  - Un mecánico que no tenía asignada la orden recibió 403.
+  - Capturas: [panel del taller](../evidencias/taller_panel.png), [orden terminada con factura e historial](../evidencias/taller_orden_terminada.png) y [consulta del cliente](../evidencias/taller_consulta.png).
+- **Registro de la consola:** solo muestra método, ruta y código, con los números de orden ocultos, por ejemplo `POST /ordenes/********/etapa 303`.
+- **Pendiente:** el despliegue de esta versión en el PC con PostgreSQL. Los pasos están en la sección 2 de la [guía de despliegue](guia_despliegue.md).

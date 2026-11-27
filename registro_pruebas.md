@@ -231,4 +231,4 @@ pip install -r requirements-dev.txt
 python -m pytest -v
 ```
 
-Resultado: 107 pruebas en verde. Con cobertura: `python -m pytest --cov=app --cov-branch --cov-report=term-missing`. GitHub Actions las corre en cada envío, con Python 3.12 y 3.13, junto con ruff, pip-audit, la prueba de humo y el contenedor.
+Resultado: 176 pruebas en verde; en el pipeline, 221, porque las de órdenes se repiten contra PostgreSQL 16. Con cobertura: `python -m pytest --cov=app --cov-branch --cov-report=term-missing`. GitHub Actions las corre en cada envío, con Python 3.12 y 3.13, junto con ruff, pip-audit, la prueba de humo y el contenedor.

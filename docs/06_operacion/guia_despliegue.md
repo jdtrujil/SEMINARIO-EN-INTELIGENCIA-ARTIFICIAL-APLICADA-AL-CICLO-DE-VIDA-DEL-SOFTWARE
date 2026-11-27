@@ -55,6 +55,25 @@ El servidor escucha solo en 127.0.0.1, así que nadie más en la red puede entra
 
 Se usa con doble clic sobre el archivo, dentro de la carpeta del proyecto.
 
+### Con PostgreSQL (ADR-004)
+
+Sin más configuración, los datos se guardan en el archivo `taller.db` de la carpeta del proyecto. Para usar PostgreSQL 16:
+
+1. Instalar PostgreSQL 16 para Windows desde postgresql.org (instalador de EDB), con el puerto 5432. Guardar la clave del usuario `postgres`.
+2. Abrir **SQL Shell (psql)**, entrar con esa clave y crear el usuario y la base del taller:
+   ```
+   CREATE USER taller WITH PASSWORD 'una_clave_larga';
+   CREATE DATABASE taller OWNER taller;
+   ```
+3. En la carpeta del proyecto, abrir `.env` con el Bloc de notas (el despliegue lo crea a partir de `.env.example`) y dejarlo así, con la clave del paso 2 y los nombres de los mecánicos:
+   ```
+   DATABASE_URL=postgresql://taller:una_clave_larga@localhost:5432/taller
+   TALLER_MECANICOS=Nombre del mecánico 1;Nombre del mecánico 2
+   ```
+4. Doble clic en `desplegar_windows.bat`. La consola debe mostrar `Base de datos: PostgreSQL en localhost:5432/taller`. Las tablas se crean solas la primera vez.
+
+El archivo `.env` tiene la clave y los nombres reales: nunca se sube al repositorio, y `.gitignore` lo excluye.
+
 ## 3. Opción B: en un contenedor Docker
 
 ```
@@ -75,7 +94,7 @@ El pipeline construye y prueba la imagen en cada envío (trabajo `contenedor`).
 
 | Paso | Resultado esperado |
 |---|---|
-| Abrir http://127.0.0.1:8000/salud | `ok` |
+| Abrir http://127.0.0.1:8000/salud | `ok` (también comprueba la base de datos) |
 | Abrir http://127.0.0.1:8000 | Página "Taller Dos Ruedas" con los formularios de placa y cobro |
 | Escribir la placa `abc12d` y validar | "Placa válida: ABC12D" |
 | Cobro con filtro 18.000, aceite 32.000 y mano de obra 35.000 | Repuestos $ 50.000, mano de obra $ 35.000, total sin IVA $ 85.000 |

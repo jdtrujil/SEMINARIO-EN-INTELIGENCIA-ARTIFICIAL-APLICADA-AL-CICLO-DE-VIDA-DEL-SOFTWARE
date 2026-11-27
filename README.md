@@ -8,7 +8,8 @@ La arquitectura es un monolito modular ([ADR-001](docs/03_diseno/adr/ADR-001-mon
 
 - `cobros`: calcula el cobro de una orden sin IVA (HU-07) y solo deja registrar cobros al mecánico asignado.
 - `ingresos`: valida la placa de la moto (HU-01).
-- `web`: versión web local para usar las dos reglas desde el navegador ([ADR-003](docs/03_diseno/adr/ADR-003-version-web-local.md)), también disponible como contenedor Docker.
+- `ordenes`: registra el ingreso con la fecha y hora, la placa, las observaciones y el mecánico. Lleva la moto por las etapas Recibida, En reparación y Terminada, con su historial, y guarda la factura al terminar. El cliente consulta la etapa y el total con su número de orden. Usa PostgreSQL 16, o un archivo SQLite si no hay PostgreSQL ([ADR-004](docs/03_diseno/adr/ADR-004-persistencia-y-etapas.md)).
+- `web`: las páginas del taller y de la consulta del cliente ([ADR-003](docs/03_diseno/adr/ADR-003-version-web-local.md)), también disponibles como contenedor Docker.
 
 El [informe final](informe_final.md) resume el proyecto y el uso de IA en cada fase, y los documentos de cada módulo están en [docs/](docs/README.md).
 
@@ -39,13 +40,13 @@ Las variables de entorno que usará la API cuando se conecte la base de datos es
 
 ## Ejecución
 
-Versión web local, que solo usa la biblioteca estándar:
+Versión web (con SQLite solo usa la biblioteca estándar; para PostgreSQL, `pip install -r requirements.txt` y `DATABASE_URL` en el archivo `.env`):
 
 ```
 python -m app.web
 ```
 
-Abre http://127.0.0.1:8000 para validar una placa y calcular un cobro. `http://127.0.0.1:8000/salud` responde `ok`. El servidor escucha solo en este equipo; el puerto se cambia con la variable `TALLER_PUERTO`. Pasos completos, verificación y cómo volver atrás: [guía de despliegue](docs/06_operacion/guia_despliegue.md).
+Abre http://127.0.0.1:8000 para registrar motos, llevarlas por sus etapas y guardar la factura. El cliente consulta en http://127.0.0.1:8000/consulta. `http://127.0.0.1:8000/salud` responde `ok` si la base responde. Los nombres de los mecánicos se ponen en `.env` (`TALLER_MECANICOS`), que no se sube. El servidor escucha solo en este equipo; el puerto se cambia con la variable `TALLER_PUERTO`. Pasos completos, verificación y cómo volver atrás: [guía de despliegue](docs/06_operacion/guia_despliegue.md).
 
 En Windows, `desplegar_windows.bat` hace todo con doble clic: prepara el entorno, corre las pruebas y, solo si pasan, arranca la versión web y abre el navegador.
 
@@ -72,12 +73,13 @@ En Windows, si `python` no responde, usa `py` en su lugar.
 python -m pytest -v
 ```
 
-Corre las 107 pruebas:
+Corre las 176 pruebas (en el pipeline, las de órdenes se repiten contra PostgreSQL 16):
 
 - 10 de la semana 5 y 10 de la semana 6, escritas con unittest (pytest también las ejecuta).
 - 50 de la semana 7, diseñadas con particiones de equivalencia, valores límite y una tabla de decisión, para tres funciones: `calcular_cobro`, `validar_placa` y `registrar_item`.
 - 34 de la versión web (`tests/test_web.py`), con un servidor real en un puerto libre.
 - 3 de aceptación (`tests/test_aceptacion.py`), una por cada escenario construido de las historias, con los datos exactos de sus criterios Gherkin.
+- 69 de la entrega final con base de datos: reglas de las órdenes (`tests/test_ordenes.py`), páginas por HTTP (`tests/test_web_taller.py`) y 13 pruebas de aceptación más (`tests/test_aceptacion_taller.py`).
 
 Cobertura de líneas y de ramas (semana 8):
 
@@ -113,9 +115,14 @@ app/
     formato.py              Pesos con punto de miles
   ingresos/
     placas.py               validar_placa: formatos ABC12D y ABC12 (HU-01)
+  ordenes/
+    modelos.py              Etapas, orden, historial y consulta del cliente
+    repositorio.py          PostgreSQL 16 o SQLite, con las mismas consultas
+    servicio.py             Ingreso, etapas, cobro, factura y consulta
   web/
-    paginas.py              Formularios de placa y cobro, sin guardar datos
-    servidor.py             Servidor local con http.server y GET /salud
+    paginas.py              Calculadora de placa y cobro, sin guardar datos
+    taller.py               Panel del taller, orden, factura y consulta
+    servidor.py             Servidor con http.server, rutas y GET /salud
     __main__.py             python -m app.web
 tests/
   test_calculo_cobro.py     Pruebas de la semana 5
@@ -132,6 +139,7 @@ docs/                       Documentos de cada módulo (ver docs/README.md)
 Dockerfile, .dockerignore   Contenedor de la versión web
 desplegar_windows.bat       Despliegue local en Windows con un doble clic
 pyproject.toml              Datos del proyecto y configuración de ruff
+requirements.txt            psycopg, solo para PostgreSQL
 requirements-dev.txt        Herramientas de revisión con versión fijada
 .env.example                Plantilla de variables de entorno
 revision_seguridad.md       Informe de revisión de código y seguridad

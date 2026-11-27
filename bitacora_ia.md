@@ -19,7 +19,7 @@ Antes de escribir código, el proyecto ya usaba IA en cada entrega. El detalle d
 | 7 | Este repositorio: suite de pruebas y `registro_pruebas.md` | Entradas 23 a 31 de esta bitácora | Cuatro reglas inventadas descartadas, 17 decisiones sobre las pruebas de la IA y un error introducido que ninguna prueba atrapó hasta agregar dos casos |
 | 8 | Este repositorio: cobertura y mutación | Entradas 33 y 34 | La columna Missing mostró 4 ramas de seguridad sin probar; 100 % de cobertura no evitó que sobreviviera un mutante |
 | 9 | Este repositorio: pipeline y Dockerfile | Entradas 35 a 38 | Cuatro hallazgos en el pipeline de la semana 6, actionlint frenó una corrección del agente y la práctica de clase se rechazó con 12 problemas |
-| 10 | Versión web, docs/, informe y sustentación | Entradas 32 y 39 a 43 | La prueba de la cabecera Server encontró un error del código generado; cada dato del informe se comprobó contra su fuente |
+| 10 | Versión web, docs/, informe, sustentación y base de datos | Entradas 32 y 39 a 44 | La prueba de la cabecera Server encontró un error del código generado; cada dato del informe se comprobó contra su fuente |
 
 ## Entradas de la semana 5
 
@@ -416,14 +416,23 @@ Antes de escribir código, el proyecto ya usaba IA en cada entrega. El detalle d
 - **Verificación:** 107 pruebas en verde. Cada escenario se comparó con el documento de requisitos de la semana 3. La medición del borrador se hizo en una copia aparte del código, sin tocar el repositorio. La presentación pasó la validación de PowerPoint y se revisaron las 8 diapositivas como imágenes. El informe, el registro de pruebas y el README quedaron con las mismas cifras.
 - **Commit relacionado:** Rama `sustentacion-esquema`, solicitud de cambios #4 ([tests/test_aceptacion.py](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/tests/test_aceptacion.py))
 
+### Entrada 44
+
+- **Fecha:** 2026-11-27
+- **Prompt o sugerencia:** Pedido del cliente después del despliegue: "Valida la placa pero no guarda la factura con repuestos y saldos. No guarda datos: implemente PostgreSQL. Al registrar una motocicleta no me deja elegir qué mecánico la va a tomar; no guarda el historial ni menciona en qué etapa se encuentra: Recibida, En reparación, Terminada. Cuando muestre Terminada, que me deje guardar la operación y que el cliente pueda revisar el costo total con el código que se genere." Datos a guardar: fecha y hora de ingreso, placa, observaciones de ingreso y datos de la factura.
+- **Decisión:** Aceptada con cambios
+- **Por qué:** El agente construyó el módulo `ordenes` con PostgreSQL 16 y SQLite como respaldo (ADR-004), las páginas del taller y la consulta del cliente. Reutilizó `validar_placa`, `calcular_cobro` y `registrar_item`, así que el permiso del hallazgo H-05 también rige aquí. Los mensajes son los de los criterios de la semana 3. Hubo dos cambios. Los nombres reales de los mecánicos no entraron al repositorio: con el cliente se decidió dejarlos en el `.env` local, porque la regla del proyecto final prohíbe datos personales reales. Además, `ruff format` reformateó archivos que no eran parte del cambio, y se devolvieron a como estaban.
+- **Verificación:** Se escribieron 69 pruebas nuevas, entre ellas 13 de aceptación con los datos de los escenarios, y las 107 anteriores pasan sin cambios. En la [ejecución 46084960626](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/actions/runs/46084960626), las pruebas de las órdenes corrieron también contra PostgreSQL 16: 221 pruebas en verde y 93 % de cobertura. Se recorrió el flujo completo en el navegador con datos ficticios: el registro oculta los números de orden y una sexta consulta seguida recibe 429.
+- **Commit relacionado:** [ebe82b9](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/commit/ebe82b9) Registro de motos con mecánico, etapas, historial, factura y consulta del cliente, con PostgreSQL
+
 ## Resumen
 
 | Decisión | Semana 5 | Semana 6 | Semana 7 | Entrega final (8 a 10) | Total |
 |---|---|---|---|---|---|
 | Aceptadas | 2 | 10 | 5 | 6 | 23 |
-| Aceptadas con cambios | 2 | 4 | 2 | 5 | 13 |
+| Aceptadas con cambios | 2 | 4 | 2 | 6 | 14 |
 | Rechazadas | 2 | 2 | 2 | 1 | 7 |
-| **Entradas** | 6 | 16 | 9 | 12 | **43** |
+| **Entradas** | 6 | 16 | 9 | 13 | **44** |
 
 ## Errores que atraparon las pruebas
 

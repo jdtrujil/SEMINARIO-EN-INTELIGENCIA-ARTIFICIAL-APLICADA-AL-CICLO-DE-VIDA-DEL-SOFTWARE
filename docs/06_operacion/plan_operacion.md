@@ -36,7 +36,12 @@ El registro nunca incluye el contenido de los formularios. Escribe solo el méto
 
 ## 5. Respaldo
 
-La versión local no guarda datos, así que no hay nada que respaldar. Cuando se conecte PostgreSQL (ADR-001), habrá que respaldar la base de datos a diario. La frecuencia y el lugar dependen de la pregunta pendiente P-04 para el cliente.
+Desde el ADR-004 el sistema guarda órdenes y facturas, así que hay que respaldarlas a diario al cerrar el taller:
+
+- **Con PostgreSQL:** `pg_dump -U taller -F c -f respaldo_AAAA-MM-DD.dump taller`, y copiar el archivo a una memoria USB o a una carpeta en la nube del taller. Para restaurarlo: `pg_restore -U taller -d taller respaldo.dump`.
+- **Con SQLite:** detener el servidor y copiar `taller.db`.
+
+Una vez al mes se prueba restaurar un respaldo en otra base, para comprobar que sirve. El lugar definitivo depende de la pregunta pendiente P-04 para el cliente.
 
 ## 6. Responsables
 
