@@ -58,7 +58,9 @@ def calcular_cobro(items: list[ItemCobro]) -> ResumenCobro:
 def _validar_item(item: ItemCobro) -> None:
     """Lanza ValueError con el mensaje que ve el usuario si el ítem no es válido."""
     if item.tipo not in TIPOS_VALIDOS:
-        raise ValueError(f"Tipo de ítem no válido: {item.tipo}. Use repuesto o mano de obra")
+        raise ValueError(
+            f"Tipo de ítem no válido: {item.tipo}. Use repuesto o mano de obra"
+        )
     if item.precio_unitario is None:
         raise ValueError(MENSAJE_SIN_PRECIO[item.tipo])
     if item.precio_unitario < 0:
@@ -69,4 +71,6 @@ def _validar_item(item: ItemCobro) -> None:
 
 def _subtotal_por_tipo(items: list[ItemCobro], tipo: str) -> int:
     """Suma cantidad por precio unitario de los ítems de un tipo."""
-    return sum(item.cantidad * item.precio_unitario for item in items if item.tipo == tipo)
+    return sum(
+        item.cantidad * item.precio_unitario for item in items if item.tipo == tipo
+    )
