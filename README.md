@@ -97,7 +97,7 @@ bitacora_ia.md              Bitácora de uso de IA
 
 ## Uso de IA
 
-El código se escribió con Claude como asistente. Las pruebas se escribieron antes de cada implementación y ninguna se modificó para que el código pasara. En la semana 6, Claude hizo una segunda revisión del código; cada hallazgo se verificó ejecutando el caso y se clasificó como real o falso positivo. Las correcciones se hicieron en la rama `semana-6-revision-seguridad`, con un commit por hallazgo, y se integraron después de revisar el diff. En la semana 7, la IA propuso casos de prueba y escribió un borrador de pruebas con pytest; cada caso y cada prueba se revisaron contra la regla antes de conservarlos, y el borrador sin revisar quedó en su propio commit para ver la diferencia. El detalle está en `bitacora_ia.md`, `revision_seguridad.md` y `registro_pruebas.md`.
+El código se escribió con Claude como asistente. En las semanas 5 y 6 las pruebas se escribieron antes del código que las hace pasar, y en la semana 7 los casos de `validar_placa` se diseñaron desde la regla antes de implementarla. Ninguna prueba se modificó para que el código pasara. En la semana 6, Claude hizo una segunda revisión del código; cada hallazgo se verificó ejecutando el caso y se clasificó como real o falso positivo. Las correcciones se hicieron en la rama `semana-6-revision-seguridad`, con un commit por hallazgo, y se integraron después de revisar el diff. En la semana 7, la IA propuso casos de prueba y escribió un borrador de pruebas con pytest; cada caso y cada prueba se revisaron contra la regla antes de conservarlos, y el borrador sin revisar quedó en su propio commit para ver la diferencia. El detalle está en `bitacora_ia.md`, `revision_seguridad.md` y `registro_pruebas.md`.
 
 ## Autor y licencia
 

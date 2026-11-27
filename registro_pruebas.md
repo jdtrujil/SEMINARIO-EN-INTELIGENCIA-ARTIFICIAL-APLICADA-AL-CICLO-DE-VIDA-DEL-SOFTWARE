@@ -128,7 +128,7 @@ Le pedí a la IA casos para las tres reglas, nombrando las técnicas (bitácora,
 
 ## 2. Pruebas de la IA corregidas, descartadas o agregadas
 
-La IA escribió un borrador de pruebas con pytest a partir de las reglas y de la tabla revisada (commit 47b4e8a, bitácora entrada 26). Las 70 pasaban, pero apliqué a cada una las tres preguntas: (1) ¿el esperado sale de la regla?, (2) ¿fallaría si rompo el código?, (3) ¿cubre algo que otra prueba no cubre? La versión revisada está en el commit 3051ed9.
+La IA escribió un borrador de pruebas con pytest a partir de las reglas y de la tabla revisada (commit 47b4e8a, bitácora entrada 26). Eran 50 pruebas nuevas y, con las 20 de las semanas 5 y 6, las 70 pasaban, pero apliqué a cada una las tres preguntas: (1) ¿el esperado sale de la regla?, (2) ¿fallaría si rompo el código?, (3) ¿cubre algo que otra prueba no cubre? La versión revisada está en el commit 3051ed9.
 
 | # | Prueba del borrador | Pregunta que no pasó | Decisión | Razón | Qué hice en su lugar |
 |---|---|---|---|---|---|
@@ -150,7 +150,7 @@ La IA escribió un borrador de pruebas con pytest a partir de las reglas y de la
 | 16 | Faltaba | 1 | Agregada | La tabla separa la orden sin mecánico y el borrador no la probaba | Fila "C2 sin mecánico" |
 | 17 | Faltaba | 2 | Agregada | La mutación M5 sobrevivió: nada probaba un decimal con parte decimal cero | Filas P18 (18000.0) y P19 (2.0), commit a138743 |
 
-**Resumen:** de 70 pruebas del borrador se descartaron 7 filas o pruebas, se corrigieron 8 y se agregaron 3 filas. La suite final de la semana 7 tiene 50 pruebas, y con las 20 de las semanas 5 y 6 son 70.
+**Resumen:** de las 50 pruebas nuevas del borrador se descartaron 7 filas o pruebas, se corrigieron 8 y se agregaron 3 filas. Algunas correcciones dividieron una prueba en dos o le sumaron filas, como la del número 12345, así que la suite final de la semana 7 también tiene 50 pruebas: 20 de `calcular_cobro`, 19 de `validar_placa` y 11 de la tabla de decisión. Con las 20 de las semanas 5 y 6 son 70.
 
 **Ningún esperado se ajustó al código.** Ninguna prueba falló contra el código, así que no hubo que decidir entre corregir el código o la prueba, y no apareció ningún defecto nuevo. Donde una prueba no fallaba al romper el código, se agregó el caso.
 

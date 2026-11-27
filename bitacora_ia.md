@@ -2,10 +2,10 @@
 
 Proyecto: Taller Dos Ruedas, sistema de control de ingreso de motos
 Estudiante: Juan Diego Trujillo Rodriguez
-Funcionalidad: HU-07 Calcular el cobro de repuestos y mano de obra, sin IVA (semana 5) y su revisión de código y seguridad (semana 6)
+Funcionalidad: HU-07 Calcular el cobro de repuestos y mano de obra, sin IVA (semana 5), su revisión de código y seguridad (semana 6) y la suite de pruebas con IA para el cobro, la placa de la HU-01 y el control de acceso (semana 7)
 Asistente usado: Claude, en modo chat y agente con acceso a la terminal
 
-## Recorrido del uso de IA en el proyecto, semanas 2 a 6
+## Recorrido del uso de IA en el proyecto, semanas 2 a 7
 
 Antes de escribir código, el proyecto ya usaba IA en cada entrega. El detalle de cada prompt está en esos documentos; aquí queda el resumen para tener todo el recorrido en un solo lugar.
 
@@ -16,6 +16,7 @@ Antes de escribir código, el proyecto ya usaba IA en cada entrega. El detalle d
 | 4 | Trujillo_Juan_S4_Diseno: documento de diseño | Cinco prompts: alternativas de arquitectura, diagrama de contexto, diagrama de contenedores, modelo de datos y API | Se descartaron microservicios, Kubernetes y Redis por sobreingeniería. Se eligió el monolito modular (ADR-001) y la consulta con número aleatorio y límite de intentos (ADR-002) |
 | 5 | Este repositorio: HU-07 | Entradas 1 a 6 de esta bitácora | Pruebas primero, implementación, refactor y un error del precio cero que atrapó una prueba de límite |
 | 6 | Este repositorio: revisión de código y seguridad | Entradas 7 a 22 de esta bitácora | Ocho hallazgos corregidos, uno por commit, en la rama del agente |
+| 7 | Este repositorio: suite de pruebas y `registro_pruebas.md` | Entradas 23 a 31 de esta bitácora | Cuatro reglas inventadas descartadas, 17 decisiones sobre las pruebas de la IA y un error introducido que ninguna prueba atrapó hasta agregar dos casos |
 
 ## Entradas de la semana 5
 
@@ -219,19 +220,104 @@ Antes de escribir código, el proyecto ya usaba IA en cada entrega. El detalle d
 - **Verificación:** `git diff e76b374 -- tests/test_calculo_cobro.py` no muestra cambios, y GitHub Actions quedó en verde en cada envío de la rama.
 - **Commit relacionado:** Rama semana-6-revision-seguridad, integrada a main con la solicitud de cambios #1
 
+## Entradas de la semana 7
+
+### Entrada 23
+
+- **Fecha:** 2026-11-27
+- **Prompt o sugerencia:** "Con estas tres reglas, propón casos de prueba usando particiones de equivalencia (incluidas las inválidas), valores límite (último valor de una partición y primero de la siguiente) y una tabla de decisión para registrar_item. Para cada caso da la entrada y el resultado esperado." Le pasé la regla del cobro de la HU-07, la de la placa de la HU-01 y la de permisos del hallazgo H-05.
+- **Decisión:** Aceptada con cambios
+- **Por qué:** La propuesta tenía la estructura correcta, pero le faltaban particiones inválidas (mano de obra sin valor, precio en texto, cantidad booleana, placa con Ñ o que no es texto), bordes de la placa y la orden sin mecánico. Además esperaba un error para "abc12d", lo que contradice la decisión de pasar la placa a mayúsculas. Agregué lo que faltaba, cambié ese caso a V3 (devuelve ABC12D) y armé la tabla de decisión completa de 8 columnas.
+- **Verificación:** Revisé la propuesta con las cinco preguntas de la semana y comparé cada esperado con la regla escrita, no con el código. El resultado está en las secciones 1.1 a 1.5 de `registro_pruebas.md`.
+- **Commit relacionado:** 94ba12d Registro de pruebas: reglas, particiones, límites y tabla de decisión
+
+### Entrada 24
+
+- **Fecha:** 2026-11-27
+- **Prompt o sugerencia:** En la misma propuesta, la IA agregó casos para cuatro reglas que nadie pidió: descripción obligatoria, precio máximo de 10.000.000, cantidad máxima de 100 y quitar el guion de la placa (ABC-12D devuelve ABC12D).
+- **Decisión:** Rechazada
+- **Por qué:** Ninguna de las cuatro está en las historias de usuario ni en la entrevista de la semana 3. Probarlas habría obligado a escribir código para reglas inventadas. Las dos primeras sí son dudas razonables, así que quedaron como ambigüedades A5 y A6 con las preguntas nuevas P-11 y P-12 para el cliente. El guion se rechaza por la decisión A2.
+- **Verificación:** Busqué cada regla en los documentos de requisitos de la semana 3 y no aparece. Las pruebas con datos sintéticos documentan el comportamiento actual: una descripción vacía se acepta.
+- **Commit relacionado:** 94ba12d Registro de pruebas: reglas, particiones, límites y tabla de decisión
+
+### Entrada 25
+
+- **Fecha:** 2026-11-27
+- **Prompt o sugerencia:** "Implementa validar_placa en app/ingresos/placas.py con la regla de la sección 1.2 del registro: tres letras, dos números y una letra opcional; quita los espacios a los lados y pasa a mayúsculas; cualquier otra cosa lanza ValueError con un mensaje claro. Con docstring y sin dependencias nuevas."
+- **Decisión:** Aceptada
+- **Por qué:** El asistente usó `fullmatch` en lugar de `match`, así que "ABC12DE" no pasa por tener un prefijo válido, y `[A-Z]` en lugar de `\w` para no aceptar Ñ ni tildes. Revisa primero que la placa sea texto, para que `None` dé ValueError y no AttributeError, la misma lección del hallazgo H-03 de la semana 6.
+- **Verificación:** Los casos de la sección 1.2 se diseñaron antes de ver el código. Después pasaron las 19 pruebas de `tests/test_placas.py`, y `ruff check` no reportó nada.
+- **Commit relacionado:** 15af1d6 HU-01: validar_placa acepta ABC12D y placas antiguas ABC12
+
+### Entrada 26
+
+- **Fecha:** 2026-11-27
+- **Prompt o sugerencia:** "Con las reglas y la tabla de casos revisada de registro_pruebas.md, escribe las pruebas en pytest. Usa @pytest.mark.parametrize con un comentario por fila que diga qué partición o límite cubre, asserts con el valor exacto y pytest.raises con el tipo exacto de error. Los datos de prueba deben venir de una fixture."
+- **Decisión:** Aceptada con cambios
+- **Por qué:** El borrador tenía 50 pruebas nuevas y todas pasaban, pero eso no prueba que sirvan. Con las tres preguntas descarté 7 filas o pruebas repetidas o que calculaban el esperado con el mismo código, corregí 8 que usaban `pytest.raises(Exception)`, `assert total > 0` o un if dentro de la prueba, y agregué la orden sin mecánico. El detalle de cada decisión está en la sección 2 del registro.
+- **Verificación:** Guardé el borrador sin revisar en su propio commit para que el diff muestre la revisión. Después de revisar, las pruebas siguen en verde y la mutación M6 confirmó que la prueba corregida de la tabla de decisión ahora sí falla.
+- **Commit relacionado:** 47b4e8a borrador de la IA y 3051ed9 Revisión de las pruebas de la IA con las tres preguntas
+
+### Entrada 27
+
+- **Fecha:** 2026-11-27
+- **Prompt o sugerencia:** "Genera datos sintéticos para las pruebas de un taller de motos en Colombia: seis ítems de cobro (repuestos y mano de obra) y seis motos con placa, marca, cliente y teléfono. Sin personas reales y con teléfonos ficticios con 555. Incluye tildes, ñ, apóstrofo, texto vacío, un precio en cero y placas en minúsculas, con espacios, con guion y con Ñ. Para cada placa indica la placa esperada según la regla, o null si es inválida."
+- **Decisión:** Aceptada
+- **Por qué:** Los datos traen repuestos que sí se usan en el taller (piñón, guaya, kit de arrastre), las marcas que atiende y nombres que no corresponden a personas reales; la marca del kit es ficticia. Cada caso difícil que pedí aparece al menos una vez.
+- **Verificación:** Revisé cada placa esperada contra la regla de la sección 1.2 y sumé a mano los ítems: 195.000 de repuestos, 65.000 de mano de obra y 260.000 en total. Esos valores son los esperados de las pruebas, no lo que devuelve el código.
+- **Commit relacionado:** 47b4e8a `tests/datos/datos_sinteticos.json` y las fixtures de `tests/conftest.py`
+
+### Entrada 28
+
+- **Fecha:** 2026-11-27
+- **Prompt o sugerencia:** Dentro del borrador, la IA propuso `test_total_es_la_suma_de_los_subtotales`, que compara el total con la suma de los dos subtotales que devuelve la misma función.
+- **Decisión:** Rechazada
+- **Por qué:** El esperado sale del código y no de la regla. Si el cálculo sumara el IVA a los dos subtotales y al total, la prueba seguiría pasando. Una prueba así solo confirma que el código hace lo que ya hace.
+- **Verificación:** Apliqué un IVA de 19 % a los dos subtotales en `calcular_cobro` y corrí la prueba del borrador: pasó. Con el mismo error, la suite actual tuvo 12 fallos, porque exige los totales exactos de la regla (50.000, 35.000 y 85.000). Deshice el cambio con `git restore` y volvieron a pasar las 70.
+- **Commit relacionado:** 3051ed9 Revisión de las pruebas de la IA con las tres preguntas
+
+### Entrada 29
+
+- **Fecha:** 2026-11-27
+- **Prompt o sugerencia:** "Propón errores pequeños y realistas para introducir en el código, uno a la vez, que una persona podría cometer en estas reglas: cambiar un < por <=, sumar IVA, saltarse un permiso, aflojar el formato de la placa. Para cada uno dime el archivo y la línea."
+- **Decisión:** Aceptada
+- **Por qué:** Introduje los siete errores, uno por uno, y corrí todas las pruebas con cada uno. Seis fallaron como se esperaba. El M5, que deja pasar un precio 18000.0, no hizo fallar ninguna prueba: era un hueco real, porque el precio con decimales solo se probaba con 18000.5. Agregué los casos P18 (precio 18000.0) y P19 (cantidad 2.0) sin cambiar ninguna prueba existente.
+- **Verificación:** Con el M5 puesto, las dos pruebas nuevas fallan; sin él, pasan. Después de cada error corrí `git restore` y comprobé con `git diff app/` que el código quedó igual. El commit solo cambia `tests/test_reglas_cobro.py`. La tabla está en la sección 3 del registro.
+- **Commit relacionado:** a138743 Agrega los casos que faltaban: precio 18000.0 y cantidad 2.0
+
+### Entrada 30
+
+- **Fecha:** 2026-11-27
+- **Prompt o sugerencia:** El agente propuso fijar pytest 9.1.1 en `requirements-dev.txt`, correr las pruebas con pytest en GitHub Actions y en la tarea de VS Code, y permitir `assert` solo en la carpeta de pruebas en ruff.
+- **Decisión:** Aceptada
+- **Por qué:** Esta semana pide pytest, así que cambia la decisión de la entrada 2. Las pruebas de unittest de las semanas 5 y 6 siguen igual, porque pytest también las ejecuta. La excepción S101 de ruff aplica solo a `tests/`, donde `assert` es la forma normal de comprobar en pytest.
+- **Verificación:** `python -m pytest -v` ejecuta las 70 pruebas en verde, y `git diff` muestra que no cambió ninguna prueba de las semanas 5 y 6.
+- **Commit relacionado:** 672ac64 pytest como herramienta fijada: CI, tareas de VS Code y README
+
+### Entrada 31
+
+- **Fecha:** 2026-11-27
+- **Prompt o sugerencia:** El agente propuso llenar las secciones 2, 3 y 4 de `registro_pruebas.md` con la revisión de cada prueba, la tabla de errores introducidos y el origen de los datos sintéticos, y agregar estas entradas a la bitácora.
+- **Decisión:** Aceptada
+- **Por qué:** Cada fila sale de un commit real de la rama. Corregí una cifra que estaba mal: el borrador tenía 50 pruebas nuevas, no 70, porque 20 eran de las semanas 5 y 6.
+- **Verificación:** Comprobé las líneas de la sección 3 contra el código de la rama, conté las pruebas de cada archivo con `pytest --collect-only` en el commit del borrador y en el actual, y verifiqué que cada commit citado existe.
+- **Commit relacionado:** b0a6ada Registro de pruebas: revisión de las pruebas de la IA, errores introducidos y datos sintéticos, y el commit de esta bitácora
+
 ## Resumen
 
-| Decisión | Semana 5 | Semana 6 | Total |
-|---|---|---|---|
-| Aceptadas | 2 | 10 | 12 |
-| Aceptadas con cambios | 2 | 4 | 6 |
-| Rechazadas | 2 | 2 | 4 |
+| Decisión | Semana 5 | Semana 6 | Semana 7 | Total |
+|---|---|---|---|---|
+| Aceptadas | 2 | 10 | 5 | 17 |
+| Aceptadas con cambios | 2 | 4 | 2 | 8 |
+| Rechazadas | 2 | 2 | 2 | 6 |
 
 ## Errores que atraparon las pruebas
 
 La prueba de límite `test_precio_cero_se_acepta_y_no_suma` falló con la primera versión del código generado. El asistente escribió `if not item.precio_unitario` para detectar un repuesto sin precio, pero en Python `not 0` es verdadero, así que una llanta que trae el cliente, con precio 0, se rechazaba con el mensaje "Escriba el precio del repuesto". Lo corregí comparando con `None`, que es como el contrato define un precio faltante. Sin esa prueba de límite, el error habría llegado hasta el taller.
 
 En la semana 6, las 4 pruebas nuevas de `tests/test_tipos_de_datos.py` fallaron con el código anterior: 3 fallos y 1 error, porque un precio escrito como texto lanzaba TypeError en lugar de ValueError. Eso confirmó el hallazgo H-03 antes de corregirlo, y después de la corrección pasaron sin cambiar ninguna prueba.
+
+En la semana 7 ninguna prueba falló contra el código real, así que no apareció un defecto nuevo. Al romper el código a propósito, las pruebas atraparon seis de siete errores: el precio cero rechazado, el IVA, el permiso saltado, la placa con un solo número, el ítem agregado antes de validarlo y la placa sin mayúsculas. El séptimo, aceptar un precio 18000.0, pasó sin que nada fallara. Agregué dos casos y ahora ese error también se atrapa.
 
 ## Reflexión final de la semana 5
 
@@ -240,3 +326,7 @@ El asistente me ayudó más a convertir el contrato en pruebas concretas: en poc
 ## Reflexión final de la semana 6
 
 La revisión con IA me ahorró tiempo para encontrar los casos de entrada que no había probado, como el precio con decimales o la cantidad `True`, pero tres de sus siete hallazgos eran falsos positivos y solo lo supe al ejecutar cada caso. Lo más importante, el control de acceso, salió de leer la historia de usuario y no solo el código: la función calculaba bien, pero cualquiera podía registrar cobros. La IA tampoco revisó el historial ni la configuración del repositorio, y ahí estaba el problema de `.env.example`. Trabajar al agente en una rama propia me dejó revisar todo el diff antes de integrarlo. En la próxima funcionalidad pondría la integración continua desde el primer commit.
+
+## Reflexión final de la semana 7
+
+La IA me ayudó a llegar rápido a una tabla de casos completa y a un borrador de pruebas que ya pasaba, pero que pasaran no quería decir que sirvieran: varias calculaban el esperado con el mismo código o aceptaban cualquier error. Lo que más me sirvió fue romper el código a propósito, porque mostró un hueco que ninguna revisión a ojo habría visto: un precio 18000.0 pasaba sin que fallara nada. También vi que la IA inventa reglas con mucha seguridad, como un precio máximo o la descripción obligatoria; si las hubiera aceptado, estaría probando un sistema que el taller no pidió. Ahora esas dudas son preguntas para el cliente. En la próxima funcionalidad escribiría primero la regla y los esperados, y solo después le pediría a la IA que escriba las pruebas.
