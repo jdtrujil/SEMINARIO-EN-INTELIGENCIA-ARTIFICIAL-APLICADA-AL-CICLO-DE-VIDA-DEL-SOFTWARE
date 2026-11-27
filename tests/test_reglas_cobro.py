@@ -69,9 +69,17 @@ def test_calcula_los_totales_sin_iva(items, esperado):
             item(precio="18000"),
             "El precio debe ser un número entero de pesos",
         ),  # P13 precio en texto
+        (
+            item(precio=18000.0),
+            "El precio debe ser un número entero de pesos",
+        ),  # P18 decimal con parte decimal cero (caso agregado por la mutación M5)
         (item(cantidad=0), "La cantidad debe ser al menos 1"),  # P14 y L3: cero
         (item(cantidad=1.5), "La cantidad debe ser un número entero"),  # P16
         (item(cantidad=True), "La cantidad debe ser un número entero"),  # P17
+        (
+            item(cantidad=2.0),
+            "La cantidad debe ser un número entero",
+        ),  # P19 cantidad 2.0 (caso agregado por la mutación M5)
     ],
 )
 def test_item_invalido_lanza_value_error_con_su_mensaje(item_invalido, mensaje):
