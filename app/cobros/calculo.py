@@ -8,6 +8,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
+REPUESTO = "repuesto"
+MANO_DE_OBRA = "mano de obra"
+TIPOS_VALIDOS = (REPUESTO, MANO_DE_OBRA)
+CANTIDAD_MINIMA = 1
+MENSAJE_SIN_PRECIO = {
+    REPUESTO: "Escriba el precio del repuesto",
+    MANO_DE_OBRA: "Escriba el valor de la mano de obra",
+}
+
 
 @dataclass(frozen=True)
 class ItemCobro:
@@ -31,24 +40,33 @@ class ResumenCobro:
 def calcular_cobro(items: list[ItemCobro]) -> ResumenCobro:
     """Suma los repuestos y la mano de obra de una orden, sin IVA.
 
-    Lanza ValueError si un ítem no tiene precio, tiene precio negativo,
-    cantidad menor que 1 o un tipo distinto de repuesto o mano de obra.
+    Primero valida todos los ítems y después calcula, así una orden con un
+    ítem inválido nunca produce un total a medias.
     """
-    total_repuestos = 0
-    total_mano_obra = 0
     for item in items:
-        if item.tipo not in ("repuesto", "mano de obra"):
-            raise ValueError(f"Tipo de ítem no válido: {item.tipo}. Use repuesto o mano de obra")
-        if item.precio_unitario is None:
-            if item.tipo == "repuesto":
-                raise ValueError("Escriba el precio del repuesto")
-            raise ValueError("Escriba el valor de la mano de obra")
-        if item.precio_unitario < 0:
-            raise ValueError("El precio no puede ser negativo")
-        if item.cantidad < 1:
-            raise ValueError("La cantidad debe ser al menos 1")
-        if item.tipo == "repuesto":
-            total_repuestos += item.cantidad * item.precio_unitario
-        else:
-            total_mano_obra += item.cantidad * item.precio_unitario
-    return ResumenCobro(total_repuestos, total_mano_obra, total_repuestos + total_mano_obra)
+        _validar_item(item)
+
+    total_repuestos = _subtotal_por_tipo(items, REPUESTO)
+    total_mano_obra = _subtotal_por_tipo(items, MANO_DE_OBRA)
+    return ResumenCobro(
+        total_repuestos=total_repuestos,
+        total_mano_obra=total_mano_obra,
+        total=total_repuestos + total_mano_obra,
+    )
+
+
+def _validar_item(item: ItemCobro) -> None:
+    """Lanza ValueError con el mensaje que ve el usuario si el ítem no es válido."""
+    if item.tipo not in TIPOS_VALIDOS:
+        raise ValueError(f"Tipo de ítem no válido: {item.tipo}. Use repuesto o mano de obra")
+    if item.precio_unitario is None:
+        raise ValueError(MENSAJE_SIN_PRECIO[item.tipo])
+    if item.precio_unitario < 0:
+        raise ValueError("El precio no puede ser negativo")
+    if item.cantidad < CANTIDAD_MINIMA:
+        raise ValueError("La cantidad debe ser al menos 1")
+
+
+def _subtotal_por_tipo(items: list[ItemCobro], tipo: str) -> int:
+    """Suma cantidad por precio unitario de los ítems de un tipo."""
+    return sum(item.cantidad * item.precio_unitario for item in items if item.tipo == tipo)
