@@ -1,10 +1,14 @@
-"""Fixtures compartidas por las pruebas de pytest de la semana 7."""
+"""Fixtures compartidas por las pruebas de pytest (semana 7 y entrega final)."""
 import json
+import os
+from datetime import datetime
 from pathlib import Path
 
 import pytest
 
 from app.cobros.modelos import ROL_MECANICO, ROL_REGISTRADOR, ItemCobro, Trabajador
+from app.ordenes.modelos import HORA_COLOMBIA, Mecanico
+from app.ordenes.repositorio import abrir
 
 ARCHIVO_DATOS = Path(__file__).parent / "datos" / "datos_sinteticos.json"
 
@@ -38,3 +42,47 @@ def mecanico_1():
 def registrador():
     """Registrador con id 3."""
     return Trabajador(id=3, rol=ROL_REGISTRADOR)
+
+
+# --- Base de datos de las órdenes (entrega final) ---------------------------
+
+MECANICOS_PRUEBA = (Mecanico(1, "Mecánico 1"), Mecanico(2, "Mecánico 2"))
+# Con TALLER_PG_PRUEBAS (en el pipeline) las pruebas de órdenes corren también
+# contra PostgreSQL 16; sin ella, solo contra SQLite.
+DESTINOS = ["sqlite"] + (["postgres"] if os.environ.get("TALLER_PG_PRUEBAS") else [])
+
+
+@pytest.fixture(autouse=True)
+def base_temporal(monkeypatch, tmp_path):
+    """Cada prueba usa su propio archivo SQLite y nunca la base real del taller."""
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.delenv("TALLER_MECANICOS", raising=False)
+    monkeypatch.setenv("TALLER_BD_ARCHIVO", str(tmp_path / "servidor.db"))
+
+
+@pytest.fixture(params=DESTINOS)
+def destino_bd(request, tmp_path):
+    """Base vacía con las tablas creadas y los dos mecánicos de prueba."""
+    if request.param == "postgres":
+        destino = os.environ["TALLER_PG_PRUEBAS"]
+        with abrir(destino) as repo:
+            repo.eliminar_tablas()
+    else:
+        destino = str(tmp_path / "taller.db")
+    with abrir(destino) as repo:
+        repo.crear_tablas()
+        repo.guardar_mecanicos(MECANICOS_PRUEBA)
+    return destino
+
+
+@pytest.fixture
+def repo(destino_bd):
+    """Repositorio abierto sobre la base de prueba; confirma al terminar."""
+    with abrir(destino_bd) as repositorio:
+        yield repositorio
+
+
+@pytest.fixture
+def fecha_ingreso():
+    """26 de noviembre de 2026 a las 8:15 de la mañana, hora de Colombia."""
+    return datetime(2026, 11, 26, 8, 15, tzinfo=HORA_COLOMBIA)

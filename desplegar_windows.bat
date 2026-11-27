@@ -11,10 +11,11 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
+if not exist .env copy .env.example .env >nul
 if not exist .venv\Scripts\python.exe py -m venv .venv
 call .venv\Scripts\activate.bat
 echo --- Instalando las herramientas de prueba con version fijada ---
-python -m pip install --disable-pip-version-check -q -r requirements-dev.txt
+python -m pip install --disable-pip-version-check -q -r requirements.txt -r requirements-dev.txt
 if errorlevel 1 (
   echo No se pudieron instalar las herramientas. Revise la conexion a internet.
   pause
