@@ -19,9 +19,9 @@ jobs:
         # 3.12 como en la semana 6 y 3.13, la versión del equipo del taller
         python-version: ["3.12", "3.13"]
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -44,7 +44,7 @@ jobs:
         run: |
           python -m app.web &
           PID=$!
-          for intento in 1 2 3 4 5; do
+          for _ in 1 2 3 4 5; do
             curl -fs http://127.0.0.1:8000/salud && break
             sleep 1
           done
@@ -57,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Revisar el Dockerfile (hadolint)
         run: docker run --rm -i hadolint/hadolint:v2.12.0 < Dockerfile
@@ -71,7 +71,7 @@ jobs:
       - name: Ejecutar el contenedor y comprobar /salud y el usuario
         run: |
           docker run -d --name taller -p 127.0.0.1:8000:8000 taller-dos-ruedas
-          for intento in 1 2 3 4 5 6 7 8 9 10; do
+          for _ in 1 2 3 4 5 6 7 8 9 10; do
             curl -fs http://127.0.0.1:8000/salud && break
             sleep 1
           done
