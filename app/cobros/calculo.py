@@ -70,7 +70,7 @@ def _validar_item(item: ItemCobro) -> None:
     if not _es_entero(item.cantidad):
         raise ValueError("La cantidad debe ser un número entero")
     if item.cantidad < CANTIDAD_MINIMA:
-        raise ValueError("La cantidad debe ser al menos 1")
+        raise ValueError(f"La cantidad debe ser al menos {CANTIDAD_MINIMA}")
 
 
 def _es_entero(valor: object) -> bool:
