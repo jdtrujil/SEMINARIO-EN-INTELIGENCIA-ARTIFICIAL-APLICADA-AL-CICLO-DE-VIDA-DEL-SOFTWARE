@@ -21,3 +21,8 @@ select = ["E", "F", "B", "S"]
 # Pruebas de la semana 5: sus líneas largas no se reformatean para no tocar
 # ninguna prueba. Ver revision_seguridad.md, avisos no corregidos.
 "tests/test_calculo_cobro.py" = ["E501"]
+# assert es la forma normal de comprobar en pytest; en el código de la app sigue prohibido.
+"tests/*.py" = ["S101"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

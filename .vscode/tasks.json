@@ -4,14 +4,27 @@
     {
       "label": "Ejecutar pruebas",
       "type": "shell",
-      "command": "python -m unittest discover -v",
+      "command": "python -m pytest -v",
       "windows": {
-        "command": "if (Get-Command py -ErrorAction SilentlyContinue) { py --version; py -m unittest discover -v } else { python --version; python -m unittest discover -v }",
+        "command": "if (Get-Command py -ErrorAction SilentlyContinue) { py --version; py -m pytest -v } else { python --version; python -m pytest -v }",
         "options": {
           "shell": { "executable": "powershell.exe", "args": ["-NoProfile", "-Command"] }
         }
       },
       "group": { "kind": "test", "isDefault": true },
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Instalar herramientas de desarrollo",
+      "type": "shell",
+      "command": "python -m pip install -r requirements-dev.txt",
+      "windows": {
+        "command": "if (Get-Command py -ErrorAction SilentlyContinue) { py -m pip install -r requirements-dev.txt } else { python -m pip install -r requirements-dev.txt }",
+        "options": {
+          "shell": { "executable": "powershell.exe", "args": ["-NoProfile", "-Command"] }
+        }
+      },
       "presentation": { "reveal": "always", "panel": "dedicated", "clear": true },
       "problemMatcher": []
     },

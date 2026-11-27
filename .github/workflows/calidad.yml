@@ -28,7 +28,7 @@ jobs:
         run: pip-audit -r requirements-dev.txt
 
       - name: Pruebas
-        run: python -m unittest discover -v
+        run: python -m pytest -v
 
       - name: Ejemplo ejecutable
         run: python -m app.cobros

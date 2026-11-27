@@ -10,8 +10,8 @@ La arquitectura es un monolito modular (ADR-001 de la semana 4): cada módulo vi
 
 - Python 3.8 o superior. En Windows se puede instalar desde Microsoft Store o python.org.
 - Git, para clonar el repositorio.
-- Para ejecutar el sistema y sus pruebas no hace falta instalar ninguna librería.
-- Solo para revisar el código: las herramientas de `requirements-dev.txt` (ruff y pip-audit).
+- Para ejecutar el sistema no hace falta instalar ninguna librería.
+- Para las pruebas y la revisión del código: las herramientas de `requirements-dev.txt` (ruff, pytest y pip-audit), con versión fijada.
 
 ## Instalación
 
@@ -20,7 +20,7 @@ git clone https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLIC
 cd SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE
 ```
 
-Herramientas de revisión, opcionales, dentro de un entorno virtual:
+Herramientas de pruebas y revisión, dentro de un entorno virtual:
 
 ```
 python -m venv .venv
@@ -44,10 +44,17 @@ En Windows, si `python` no responde, usa `py` en su lugar.
 ## Pruebas
 
 ```
-python -m unittest discover -v
+python -m pytest -v
 ```
 
-Corre las 20 pruebas: 10 de la semana 5 (cálculo del cobro), 4 de tipos de datos y 6 de control de acceso, entre ellas 4 de abuso. Si tienes pytest instalado, también funciona `python -m pytest -v`. En VS Code: menú Terminal, Ejecutar tarea, "Ejecutar pruebas".
+Corre las 70 pruebas:
+
+- 10 de la semana 5 y 10 de la semana 6, escritas con unittest (pytest también las ejecuta).
+- 50 de la semana 7, diseñadas con particiones de equivalencia, valores límite y una tabla de decisión, para tres funciones: `calcular_cobro`, `validar_placa` y `registrar_item`.
+
+Las reglas, las tablas de casos, la revisión de las pruebas generadas por la IA, los errores introducidos a propósito y los datos sintéticos están en `registro_pruebas.md`. Sin pytest instalado, `python -m unittest discover -v` corre solo las 20 de las semanas 5 y 6.
+
+En VS Code: menú Terminal, Ejecutar tarea, "Instalar herramientas de desarrollo" la primera vez, y después "Ejecutar pruebas".
 
 Linter y auditoría de dependencias:
 
@@ -68,21 +75,29 @@ app/
     servicio.py             registrar_item: solo el mecánico asignado
     errores.py              AccesoDenegado
     __main__.py             Ejemplo ejecutable
+  ingresos/
+    placas.py               validar_placa: formatos ABC12D y ABC12 (HU-01)
 tests/
   test_calculo_cobro.py     Pruebas de la semana 5
   test_tipos_de_datos.py    Pruebas de cantidades y precios enteros
   test_permisos_cobro.py    Pruebas de control de acceso y abuso
+  test_reglas_cobro.py      Particiones y límites de calcular_cobro (semana 7)
+  test_placas.py            Particiones y límites de validar_placa (semana 7)
+  test_tabla_decision_permisos.py  Tabla de decisión de registrar_item (semana 7)
+  conftest.py               Fixtures con los datos sintéticos
+  datos/datos_sinteticos.json  Datos de prueba sin personas reales
 .github/workflows/          Revisión automática en GitHub Actions
 pyproject.toml              Datos del proyecto y configuración de ruff
 requirements-dev.txt        Herramientas de revisión con versión fijada
 .env.example                Plantilla de variables de entorno
 revision_seguridad.md       Informe de revisión de código y seguridad
+registro_pruebas.md         Reglas, casos y revisión de las pruebas (semana 7)
 bitacora_ia.md              Bitácora de uso de IA
 ```
 
 ## Uso de IA
 
-El código se escribió con Claude como asistente. Las pruebas se escribieron antes de cada implementación y ninguna se modificó para que el código pasara. En la semana 6, Claude hizo una segunda revisión del código; cada hallazgo se verificó ejecutando el caso y se clasificó como real o falso positivo. Las correcciones se hicieron en la rama `semana-6-revision-seguridad`, con un commit por hallazgo, y se integraron después de revisar el diff. El detalle está en `bitacora_ia.md` y en `revision_seguridad.md`.
+El código se escribió con Claude como asistente. Las pruebas se escribieron antes de cada implementación y ninguna se modificó para que el código pasara. En la semana 6, Claude hizo una segunda revisión del código; cada hallazgo se verificó ejecutando el caso y se clasificó como real o falso positivo. Las correcciones se hicieron en la rama `semana-6-revision-seguridad`, con un commit por hallazgo, y se integraron después de revisar el diff. En la semana 7, la IA propuso casos de prueba y escribió un borrador de pruebas con pytest; cada caso y cada prueba se revisaron contra la regla antes de conservarlos, y el borrador sin revisar quedó en su propio commit para ver la diferencia. El detalle está en `bitacora_ia.md`, `revision_seguridad.md` y `registro_pruebas.md`.
 
 ## Autor y licencia
 
