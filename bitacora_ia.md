@@ -2,10 +2,10 @@
 
 Proyecto: Taller Dos Ruedas, sistema de control de ingreso de motos
 Estudiante: Juan Diego Trujillo Rodriguez
-Funcionalidad: HU-07 Calcular el cobro de repuestos y mano de obra, sin IVA (semana 5), su revisión de código y seguridad (semana 6) y la suite de pruebas con IA para el cobro, la placa de la HU-01 y el control de acceso (semana 7)
+Funcionalidad: HU-07 Calcular el cobro de repuestos y mano de obra, sin IVA (semana 5), su revisión de código y seguridad (semana 6), la suite de pruebas con IA para el cobro, la placa de la HU-01 y el control de acceso (semana 7), la cobertura (semana 8), el pipeline y el contenedor (semana 9) y la versión web desplegable con el informe final (semana 10)
 Asistente usado: Claude, en modo chat y agente con acceso a la terminal
 
-## Recorrido del uso de IA en el proyecto, semanas 2 a 7
+## Recorrido del uso de IA en el proyecto, semanas 2 a 10
 
 Antes de escribir código, el proyecto ya usaba IA en cada entrega. El detalle de cada prompt está en esos documentos; aquí queda el resumen para tener todo el recorrido en un solo lugar.
 
@@ -17,6 +17,9 @@ Antes de escribir código, el proyecto ya usaba IA en cada entrega. El detalle d
 | 5 | Este repositorio: HU-07 | Entradas 1 a 6 de esta bitácora | Pruebas primero, implementación, refactor y un error del precio cero que atrapó una prueba de límite |
 | 6 | Este repositorio: revisión de código y seguridad | Entradas 7 a 22 de esta bitácora | Ocho hallazgos corregidos, uno por commit, en la rama del agente |
 | 7 | Este repositorio: suite de pruebas y `registro_pruebas.md` | Entradas 23 a 31 de esta bitácora | Cuatro reglas inventadas descartadas, 17 decisiones sobre las pruebas de la IA y un error introducido que ninguna prueba atrapó hasta agregar dos casos |
+| 8 | Este repositorio: cobertura y mutación | Entradas 33 y 34 | La columna Missing mostró 4 ramas de seguridad sin probar; 100 % de cobertura no evitó que sobreviviera un mutante |
+| 9 | Este repositorio: pipeline y Dockerfile | Entradas 35 a 38 | Cuatro hallazgos en el pipeline de la semana 6, actionlint frenó una corrección del agente y la práctica de clase se rechazó con 12 problemas |
+| 10 | Versión web, docs/, informe y sustentación | Entradas 32 y 39 a 42 | La prueba de la cabecera Server encontró un error del código generado; cada dato del informe se comprobó contra su fuente |
 
 ## Entradas de la semana 5
 
@@ -303,13 +306,115 @@ Antes de escribir código, el proyecto ya usaba IA en cada entrega. El detalle d
 - **Verificación:** Comprobé las líneas de la sección 3 contra el código de la rama, conté las pruebas de cada archivo con `pytest --collect-only` en el commit del borrador y en el actual, y verifiqué que cada commit citado existe.
 - **Commit relacionado:** b0a6ada Registro de pruebas: revisión de las pruebas de la IA, errores introducidos y datos sintéticos, y el commit de esta bitácora
 
+## Entradas de la entrega final (semanas 8 a 10)
+
+### Entrada 32
+
+- **Fecha:** 2026-11-27
+- **Prompt o sugerencia:** "Construye una versión web local del Taller Dos Ruedas solo con la biblioteca estándar de Python: un formulario para validar la placa y otro para calcular el cobro, reutilizando validar_placa y calcular_cobro. Que escuche solo en 127.0.0.1, escape todo lo que escribe el usuario, limite el tamaño del formulario, no guarde datos y tenga una ruta /salud. Escribe las pruebas con pytest."
+- **Decisión:** Aceptada con cambios
+- **Por qué:** Las reglas no se duplican: los mensajes de error de la página son los mismos de `calcular_cobro` y `validar_placa`, con el número de la fila adelante. Hubo dos cambios. La prueba de la cabecera `Server` falló: el código generado dejaba un espacio al final, y se corrigió el código sin tocar la prueba. En la primera captura, la columna del tipo cortaba "mano de obra", y se fijó el ancho de las columnas. Una decisión de la interfaz: el registrador escribe los precios como 18.000, así que la página acepta el punto de miles, pero solo en grupos exactos de tres dígitos. Por eso 1.5 sigue rechazado.
+- **Verificación:** 30 pruebas nuevas en `tests/test_web.py` y 100 en verde, `ruff check` sin avisos y capturas de la página real, servida por el servidor ([docs/evidencias](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/tree/main/docs/evidencias)).
+- **Commit relacionado:** [c71c436](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/commit/c71c436) Versión web local: validar la placa y calcular el cobro en el navegador
+
+### Entrada 33
+
+- **Fecha:** 2026-11-27
+- **Prompt o sugerencia:** "Propón errores pequeños y realistas para la versión web, uno a la vez, para comprobar que las pruebas nuevas los detectan: escapar, convertir los precios, limitar el tamaño y la dirección en que escucha."
+- **Decisión:** Aceptada
+- **Por qué:** Introduje cuatro errores, uno por uno. W1, la descripción sin escapar, hizo fallar 1 prueba. W2, sin quitar el punto de miles, hizo fallar 2. W3, sin límite de tamaño, 1. W4, escuchar en 0.0.0.0 por defecto, hizo fallar 2 pruebas y ruff lo marcó con S104. Los cuatro murieron.
+- **Verificación:** Después de cada error restauré el archivo y volví a correr las 100 pruebas en verde. El resultado está en la sección 5.3 de [registro_pruebas.md](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/registro_pruebas.md).
+- **Commit relacionado:** Ninguno, porque el código se restauró después de cada error
+
+### Entrada 34
+
+- **Fecha:** 2026-11-27
+- **Prompt o sugerencia:** "Con lo de la semana 8, mide la cobertura de líneas y de ramas con pytest-cov en el pipeline (--cov=app --cov-branch --cov-report=term-missing) y usa la columna Missing para decidir qué falta probar."
+- **Decisión:** Aceptada
+- **Por qué:** La primera medición dio 83 %. La columna Missing mostró sin probar las ramas de seguridad del servidor: el formulario sin tamaño (411), el que tiene demasiados campos (413), un precio con miles de dígitos y el arranque con un puerto inválido. Se agregaron 4 pruebas sin cambiar el código y el total subió a 87 %. Los dos `__main__.py` quedaron en 0 % a propósito: son demos que el pipeline ejecuta aparte, y probarlos no comprobaría ninguna regla.
+- **Verificación:** Ejecuciones [46064096065](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/actions/runs/46064096065) (antes) y [46064631239](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/actions/runs/46064631239) (después). Las reglas del negocio tienen 100 % de líneas y de ramas, y aun así la mutación M5 había sobrevivido en la semana 7: la cobertura dice qué se ejecutó, no qué se comprobó.
+- **Commit relacionado:** [ebbc9bd](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/commit/ebbc9bd) Cobertura con pytest-cov y prueba de humo, y [380ead2](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/commit/380ead2) Pruebas guiadas por la columna Missing de la cobertura
+
+### Entrada 35
+
+- **Fecha:** 2026-11-27
+- **Prompt o sugerencia:** "Escribe un Dockerfile para la versión web del Taller Dos Ruedas (python -m app.web, solo biblioteca estándar, puerto 8000) y su .dockerignore, siguiendo la lista de revisión de la semana 9: imagen base, secretos, usuario, .dockerignore, versiones y modo desarrollo."
+- **Decisión:** Aceptada
+- **Por qué:** Pasó las seis preguntas de la lista: `python:3.13-slim` sin `latest`, ningún secreto, usuario sin privilegios (uid 10001), un `.dockerignore` que deja fuera `.git`, `.env`, las pruebas y los documentos, sin `pip install` y sin `--reload`. Además trae un `HEALTHCHECK` a `/salud`. Queda un pendiente: fijar la imagen por digest. La línea `TALLER_HOST=0.0.0.0` parece un problema y no lo es: dentro del contenedor hace falta, y quién entra lo decide `-p 127.0.0.1:8000:8000`.
+- **Verificación:** hadolint no dio avisos. El pipeline construye la imagen, la ejecuta y comprueba que `/salud` responde `ok` y que el usuario es el 10001.
+- **Commit relacionado:** [89c7ca0](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/commit/89c7ca0) Contenedor y pipeline revisados con la lista de la semana 9
+
+### Entrada 36
+
+- **Fecha:** 2026-11-27
+- **Prompt o sugerencia:** "Revisa calidad.yml, el pipeline que generaste en la semana 6, con la lista de la semana 9: eventos, permisos, secretos, versiones, dependencias y si un fallo de las pruebas hace fallar el pipeline. Corrige lo que encuentres y agrega un trabajo que construya y pruebe el contenedor con hadolint y actionlint."
+- **Decisión:** Aceptada con cambios
+- **Por qué:** La revisión encontró que las acciones estaban fijadas por etiqueta y no por commit, que no había tiempo máximo, que solo se probaba Python 3.12 aunque el PC tiene 3.13 y que ningún paso probaba el contenedor. Los permisos, los secretos, las dependencias y el fallo de las pruebas estaban bien. La corrección del agente falló en su propio pipeline: actionlint marcó SC2034 en los dos ciclos de espera que el agente acababa de escribir, porque la variable `intento` no se usaba. En la misma ejecución, GitHub avisó que checkout v4 y setup-python v5 usan Node.js 20, que está obsoleto.
+- **Verificación:** La [ejecución 46064439336](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/actions/runs/46064439336) salió en rojo por actionlint. Después de la corrección, la [46064631239](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/actions/runs/46064631239) salió en verde con 3.12, 3.13 y el contenedor. El detalle está en [revision_configuracion.md](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/06_operacion/revision_configuracion.md).
+- **Commit relacionado:** [89c7ca0](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/commit/89c7ca0) y [58762b4](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/commit/58762b4) Corrige los avisos de actionlint y de GitHub en el pipeline
+
+### Entrada 37
+
+- **Fecha:** 2026-11-27
+- **Prompt o sugerencia:** El agente propuso comprobar que el pipeline de verdad falla: una rama temporal con una prueba que exige el total con IVA (21.420) para un repuesto de 18.000.
+- **Decisión:** Aceptada
+- **Por qué:** La lista de la semana 9 pide comprobar que un fallo de las pruebas hace fallar el pipeline. Un pipeline que siempre sale en verde, como el de la práctica con `continue-on-error`, no protege nada.
+- **Verificación:** La [ejecución 46064652666](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/actions/runs/46064652666) salió en rojo con las dos versiones de Python, y el contenedor no se construyó. La rama `prueba-pipeline-rojo` no se integra.
+- **Commit relacionado:** b8c77cc, solo en la rama `prueba-pipeline-rojo`
+
+### Entrada 38
+
+- **Fecha:** 2026-11-27
+- **Prompt o sugerencia:** El código de práctica de la semana 9 trae un `ci.yml` y un `Dockerfile` generados por un asistente de IA con prompts simples ("Escribe un workflow de GitHub Actions para mi proyecto de Python con pytest" y "Escribe un Dockerfile para mi API de FastAPI").
+- **Decisión:** Rechazada
+- **Por qué:** Revisé los dos archivos sin ejecutarlos, como pide el LEEME. El `ci.yml` tiene seis problemas: la rama `master` cuando la rama es `main`, `write-all`, la clave escrita en el archivo, `3.10` sin comillas (YAML la lee como 3.1), dependencias sin versión y `continue-on-error`. El `Dockerfile` tiene otros seis: `latest`, la clave en `ENV`, `COPY . .` sin `.dockerignore`, root, `--reload` y la caché de pip. La línea `--host 0.0.0.0` no es un problema. Esta práctica es la que llevó a pedir el Dockerfile del proyecto con la lista desde el primer prompt (entrada 35).
+- **Verificación:** Cada hallazgo se comparó con la lista de la semana. El código de práctica no se subió al repositorio, y su clave es ficticia.
+- **Commit relacionado:** [d2c1d9d](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/commit/d2c1d9d), sección 5 de [revision_configuracion.md](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/06_operacion/revision_configuracion.md)
+
+### Entrada 39
+
+- **Fecha:** 2026-11-27
+- **Prompt o sugerencia:** "Pon el repositorio en su estado final: ordena docs/ por módulo con los entregables de las semanas 2 a 4, pasa los ADR de la semana 4 a archivos .md, escribe el ADR de la versión web, la guía de despliegue y el plan de operación, y actualiza el README."
+- **Decisión:** Aceptada
+- **Por qué:** El PDF del proyecto final pide los documentos de cada módulo en el repositorio. Los ADR-001 y ADR-002 se copiaron del documento de diseño sin cambiar la decisión. El ADR-003 explica por qué se despliega una versión con la biblioteca estándar antes de FastAPI. La guía y el plan describen lo que existe: una versión que no guarda datos, con `/salud` y el registro sin contenido de formularios.
+- **Verificación:** Revisé que cada enlace de `docs/README.md` apunte a un archivo que existe y que los ADR coincidan con el PDF de la semana 4. También busqué datos personales reales en los documentos: los nombres, las placas y los teléfonos son ficticios.
+- **Commit relacionado:** [d2c1d9d](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/commit/d2c1d9d) Carpeta docs por módulo, ADR, guía de despliegue, plan de operación y revisión de configuración
+
+### Entrada 40
+
+- **Fecha:** 2026-11-27
+- **Prompt o sugerencia:** "Con la plantilla informe_final_integrador.md y todo lo que hay en el repositorio, redacta el informe final: cada afirmación con el enlace a su evidencia, al menos tres casos de verificación de fases distintas con su commit, y la sección 6 sobre las decisiones de este proyecto, no sobre la ética de la IA en general."
+- **Decisión:** Aceptada con cambios
+- **Por qué:** El borrador seguía las ocho secciones y traía cinco casos, uno por fase. Antes de aceptarlo revisé cada dato contra su fuente. Hubo dos cambios: los conteos de la bitácora (entradas y rechazos) se ajustaron a lo que de verdad tiene este archivo, y el despliegue se describe solo como se hizo.
+- **Verificación:** Busqué en los PDF de las semanas 3 y 4 cada error que el informe le atribuye a la IA: las citas de WhatsApp y del reporte diario, Kubernetes con "miles de usuarios concurrentes", la cédula, el correo, la tarjeta y los totales 86, 75 y 75. También busqué en la transcripción cada cita de la entrevista y comprobé con `git log` que existen los 12 commits citados.
+- **Commit relacionado:** Rama `entrega-final`, solicitud de cambios #3
+
+### Entrada 41
+
+- **Fecha:** 2026-11-27
+- **Prompt o sugerencia:** "Organiza la sustentación en PowerPoint, máximo 8 diapositivas, con la estructura sugerida del PDF: problema y usuario, solución y arquitectura, la IA en cada fase, el mejor caso de verificación, una decisión ética y aprendizajes. Muestra evidencias reales del repositorio y pon en las notas lo que digo y cuánto dura."
+- **Decisión:** Aceptada con cambios
+- **Por qué:** La estructura y los tiempos siguen el PDF y suman 10 minutos. Tres cambios después de ver cada diapositiva renderizada: acorté los títulos que ocupaban dos líneas, rehice las capturas de la terminal con menos texto para que se puedan leer y recorté las capturas de la página. No se pudo tomar una captura de la página de GitHub desde el entorno del agente, así que la evidencia del pipeline es la salida real de `gh run view`.
+- **Verificación:** El archivo pasó la validación de PowerPoint y revisé las 8 diapositivas como imágenes. Los números de las capturas (104 pruebas, 87 %, los tres trabajos en verde) son los de la ejecución [46065039912](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/actions/runs/46065039912).
+- **Commit relacionado:** Rama `entrega-final`, solicitud de cambios #3 (`docs/entrega_final/`)
+
+### Entrada 42
+
+- **Fecha:** 2026-11-27
+- **Prompt o sugerencia:** "Simula las preguntas que me pueden hacer en los 4 minutos de la sustentación, con los ejemplos del PDF, y dame para cada una la respuesta y el archivo y la línea que debo abrir."
+- **Decisión:** Aceptada
+- **Por qué:** Son 13 preguntas sobre el código, la verificación, los datos personales y el mantenimiento. Cada respuesta apunta a una evidencia que se puede abrir en vivo.
+- **Verificación:** Abrí cada archivo en la línea citada (por ejemplo, `calculo.py:73` y `servicio.py:37-39`) y comprobé contra el ADR-002 y la sección 5 del registro de pruebas lo que dice cada respuesta.
+- **Commit relacionado:** [docs/entrega_final/preguntas_sustentacion.md](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/entrega_final/preguntas_sustentacion.md)
+
 ## Resumen
 
-| Decisión | Semana 5 | Semana 6 | Semana 7 | Total |
-|---|---|---|---|---|
-| Aceptadas | 2 | 10 | 5 | 17 |
-| Aceptadas con cambios | 2 | 4 | 2 | 8 |
-| Rechazadas | 2 | 2 | 2 | 6 |
+| Decisión | Semana 5 | Semana 6 | Semana 7 | Entrega final (8 a 10) | Total |
+|---|---|---|---|---|---|
+| Aceptadas | 2 | 10 | 5 | 6 | 23 |
+| Aceptadas con cambios | 2 | 4 | 2 | 4 | 12 |
+| Rechazadas | 2 | 2 | 2 | 1 | 7 |
+| **Entradas** | 6 | 16 | 9 | 11 | **42** |
 
 ## Errores que atraparon las pruebas
 
@@ -318,6 +423,8 @@ La prueba de límite `test_precio_cero_se_acepta_y_no_suma` falló con la primer
 En la semana 6, las 4 pruebas nuevas de `tests/test_tipos_de_datos.py` fallaron con el código anterior: 3 fallos y 1 error, porque un precio escrito como texto lanzaba TypeError en lugar de ValueError. Eso confirmó el hallazgo H-03 antes de corregirlo, y después de la corrección pasaron sin cambiar ninguna prueba.
 
 En la semana 7 ninguna prueba falló contra el código real, así que no apareció un defecto nuevo. Al romper el código a propósito, las pruebas atraparon seis de siete errores: el precio cero rechazado, el IVA, el permiso saltado, la placa con un solo número, el ítem agregado antes de validarlo y la placa sin mayúsculas. El séptimo, aceptar un precio 18000.0, pasó sin que nada fallara. Agregué dos casos y ahora ese error también se atrapa.
+
+En la entrega final, la prueba `test_inicio_lleva_las_cabeceras_de_seguridad_y_no_muestra_la_version_de_python` falló con el código que generó la IA: la cabecera `Server` quedaba con un espacio al final. Se corrigió el código, no la prueba. En el pipeline, actionlint frenó la ejecución 46064439336 por dos variables sin usar que el agente acababa de escribir.
 
 ## Reflexión final de la semana 5
 
@@ -330,3 +437,7 @@ La revisión con IA me ahorró tiempo para encontrar los casos de entrada que no
 ## Reflexión final de la semana 7
 
 La IA me ayudó a llegar rápido a una tabla de casos completa y a un borrador de pruebas que ya pasaba, pero que pasaran no quería decir que sirvieran: varias calculaban el esperado con el mismo código o aceptaban cualquier error. Lo que más me sirvió fue romper el código a propósito, porque mostró un hueco que ninguna revisión a ojo habría visto: un precio 18000.0 pasaba sin que fallara nada. También vi que la IA inventa reglas con mucha seguridad, como un precio máximo o la descripción obligatoria; si las hubiera aceptado, estaría probando un sistema que el taller no pidió. Ahora esas dudas son preguntas para el cliente. En la próxima funcionalidad escribiría primero la regla y los esperados, y solo después le pediría a la IA que escriba las pruebas.
+
+## Reflexión final del proyecto
+
+Al empezar pensaba que la IA serviría sobre todo para escribir código. Al final, donde más aportó fue en proponer: alternativas de arquitectura, casos de prueba, revisiones de seguridad y listas de lo que podía fallar. Pero en cada fase propuso algo que no estaba bien y que se veía bien: citas que el cliente nunca dijo, microservicios para 25 motos al día, una cédula que nadie pidió, un `not` que rechazaba el precio cero, pruebas que pasaban sin comprobar nada y un pipeline sin límite de tiempo. Lo que los detectó no fue leer con más cuidado, sino tener algo contra qué comparar: la transcripción, la matriz recalculada, una prueba escrita antes, el código roto a propósito y una lista de revisión. Por eso cada sugerencia de esta bitácora tiene su verificación al lado. La IA propone, yo verifico y respondo por el resultado.

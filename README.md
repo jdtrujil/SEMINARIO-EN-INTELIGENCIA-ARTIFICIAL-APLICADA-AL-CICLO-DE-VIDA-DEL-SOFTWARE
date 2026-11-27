@@ -4,7 +4,13 @@
 
 Sistema web para el Taller Dos Ruedas (nombre ficticio), un taller de motos con un registrador, dos mecánicos y un ayudante. Registra el ingreso de cada moto, asigna el trabajo a los mecánicos, calcula el cobro de repuestos y mano de obra sin IVA y permite que el cliente consulte con su número de orden si la moto ya está lista. Es el proyecto final del Seminario Inteligencia Artificial Aplicada al Ciclo de Vida del Software.
 
-La arquitectura es un monolito modular (ADR-001 de la semana 4): cada módulo vive en su propia carpeta dentro de `app`. El primer incremento es el módulo `cobros`: calcula el cobro de una orden (HU-07) y solo deja registrar cobros al mecánico asignado.
+La arquitectura es un monolito modular ([ADR-001](docs/03_diseno/adr/ADR-001-monolito-modular.md)): cada módulo vive en su propia carpeta dentro de `app`. Estado de la entrega final:
+
+- `cobros`: calcula el cobro de una orden sin IVA (HU-07) y solo deja registrar cobros al mecánico asignado.
+- `ingresos`: valida la placa de la moto (HU-01).
+- `web`: versión web local para usar las dos reglas desde el navegador ([ADR-003](docs/03_diseno/adr/ADR-003-version-web-local.md)), también disponible como contenedor Docker.
+
+El [informe final](informe_final.md) resume el proyecto y el uso de IA en cada fase, y los documentos de cada módulo están en [docs/](docs/README.md).
 
 ## Requisitos
 
@@ -33,6 +39,25 @@ Las variables de entorno que usará la API cuando se conecte la base de datos es
 
 ## Ejecución
 
+Versión web local, que solo usa la biblioteca estándar:
+
+```
+python -m app.web
+```
+
+Abre http://127.0.0.1:8000 para validar una placa y calcular un cobro. `http://127.0.0.1:8000/salud` responde `ok`. El servidor escucha solo en este equipo; el puerto se cambia con la variable `TALLER_PUERTO`. Pasos completos, verificación y cómo volver atrás: [guía de despliegue](docs/06_operacion/guia_despliegue.md).
+
+En Windows, `desplegar_windows.bat` hace todo con doble clic: prepara el entorno, corre las pruebas y, solo si pasan, arranca la versión web y abre el navegador.
+
+Con Docker:
+
+```
+docker build -t taller-dos-ruedas .
+docker run --rm -p 127.0.0.1:8000:8000 taller-dos-ruedas
+```
+
+Ejemplo en la consola:
+
 ```
 python -m app.cobros
 ```
@@ -47,10 +72,19 @@ En Windows, si `python` no responde, usa `py` en su lugar.
 python -m pytest -v
 ```
 
-Corre las 70 pruebas:
+Corre las 104 pruebas:
 
 - 10 de la semana 5 y 10 de la semana 6, escritas con unittest (pytest también las ejecuta).
 - 50 de la semana 7, diseñadas con particiones de equivalencia, valores límite y una tabla de decisión, para tres funciones: `calcular_cobro`, `validar_placa` y `registrar_item`.
+- 34 de la versión web (`tests/test_web.py`), con un servidor real en un puerto libre.
+
+Cobertura de líneas y de ramas (semana 8):
+
+```
+python -m pytest --cov=app --cov-branch --cov-report=term-missing
+```
+
+Las reglas del negocio tienen 100 % de cobertura de líneas y de ramas. El detalle de la cobertura y de la mutación está en la sección 5 de `registro_pruebas.md`.
 
 Las reglas, las tablas de casos, la revisión de las pruebas generadas por la IA, los errores introducidos a propósito y los datos sintéticos están en `registro_pruebas.md`. Sin pytest instalado, `python -m unittest discover -v` corre solo las 20 de las semanas 5 y 6.
 
@@ -63,7 +97,7 @@ ruff check --select E,F,B,S .
 pip-audit -r requirements-dev.txt
 ```
 
-GitHub Actions corre el linter, pip-audit, las pruebas y el ejemplo en cada envío (`.github/workflows/calidad.yml`).
+GitHub Actions corre todo esto en cada envío (`.github/workflows/calidad.yml`): el linter, pip-audit, las pruebas con cobertura en Python 3.12 y 3.13, el ejemplo y una prueba de humo de la versión web. Además, un trabajo de contenedor pasa hadolint y actionlint, construye la imagen y comprueba `/salud`. La revisión de esta configuración está en [revision_configuracion.md](docs/06_operacion/revision_configuracion.md).
 
 ## Estructura
 
@@ -75,8 +109,13 @@ app/
     servicio.py             registrar_item: solo el mecánico asignado
     errores.py              AccesoDenegado
     __main__.py             Ejemplo ejecutable
+    formato.py              Pesos con punto de miles
   ingresos/
     placas.py               validar_placa: formatos ABC12D y ABC12 (HU-01)
+  web/
+    paginas.py              Formularios de placa y cobro, sin guardar datos
+    servidor.py             Servidor local con http.server y GET /salud
+    __main__.py             python -m app.web
 tests/
   test_calculo_cobro.py     Pruebas de la semana 5
   test_tipos_de_datos.py    Pruebas de cantidades y precios enteros
@@ -85,19 +124,24 @@ tests/
   test_placas.py            Particiones y límites de validar_placa (semana 7)
   test_tabla_decision_permisos.py  Tabla de decisión de registrar_item (semana 7)
   conftest.py               Fixtures con los datos sintéticos
+  test_web.py               Pruebas de la versión web
   datos/datos_sinteticos.json  Datos de prueba sin personas reales
+docs/                       Documentos de cada módulo (ver docs/README.md)
 .github/workflows/          Revisión automática en GitHub Actions
+Dockerfile, .dockerignore   Contenedor de la versión web
+desplegar_windows.bat       Despliegue local en Windows con un doble clic
 pyproject.toml              Datos del proyecto y configuración de ruff
 requirements-dev.txt        Herramientas de revisión con versión fijada
 .env.example                Plantilla de variables de entorno
 revision_seguridad.md       Informe de revisión de código y seguridad
-registro_pruebas.md         Reglas, casos y revisión de las pruebas (semana 7)
+registro_pruebas.md         Reglas, casos, revisión, mutación y cobertura (semanas 7 y 8)
 bitacora_ia.md              Bitácora de uso de IA
+informe_final.md            Informe final del proyecto integrador
 ```
 
 ## Uso de IA
 
-El código se escribió con Claude como asistente. En las semanas 5 y 6 las pruebas se escribieron antes del código que las hace pasar, y en la semana 7 los casos de `validar_placa` se diseñaron desde la regla antes de implementarla. Ninguna prueba se modificó para que el código pasara. En la semana 6, Claude hizo una segunda revisión del código; cada hallazgo se verificó ejecutando el caso y se clasificó como real o falso positivo. Las correcciones se hicieron en la rama `semana-6-revision-seguridad`, con un commit por hallazgo, y se integraron después de revisar el diff. En la semana 7, la IA propuso casos de prueba y escribió un borrador de pruebas con pytest; cada caso y cada prueba se revisaron contra la regla antes de conservarlos, y el borrador sin revisar quedó en su propio commit para ver la diferencia. El detalle está en `bitacora_ia.md`, `revision_seguridad.md` y `registro_pruebas.md`.
+El código se escribió con Claude como asistente. En las semanas 5 y 6 las pruebas se escribieron antes del código que las hace pasar, y en la semana 7 los casos de `validar_placa` se diseñaron desde la regla antes de implementarla. Ninguna prueba se modificó para que el código pasara. En la semana 6, Claude hizo una segunda revisión del código; cada hallazgo se verificó ejecutando el caso y se clasificó como real o falso positivo. Las correcciones se hicieron en la rama `semana-6-revision-seguridad`, con un commit por hallazgo, y se integraron después de revisar el diff. En la semana 7, la IA propuso casos de prueba y escribió un borrador de pruebas con pytest; cada caso y cada prueba se revisaron contra la regla antes de conservarlos, y el borrador sin revisar quedó en su propio commit para ver la diferencia. En la semana 8 la cobertura del pipeline mostró ramas de seguridad sin probar en la versión web, y se agregaron sus pruebas. En la semana 9 se revisaron el pipeline y el Dockerfile con la lista de la semana, y con hadolint y actionlint. El detalle está en `bitacora_ia.md`, `revision_seguridad.md`, `registro_pruebas.md`, `docs/06_operacion/revision_configuracion.md` y el [informe final](informe_final.md).
 
 ## Autor y licencia
 

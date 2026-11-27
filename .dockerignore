@@ -1,0 +1,19 @@
+# Lo que no entra al contexto de construcción de la imagen
+.git
+.github
+.vscode
+.venv
+venv
+.env
+.env.*
+**/__pycache__
+**/*.pyc
+.pytest_cache
+.ruff_cache
+.coverage
+htmlcov
+tests
+docs
+*.md
+*.pdf
+*.zip

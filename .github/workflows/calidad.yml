@@ -1,4 +1,6 @@
-# Revisión automática en cada envío: linter, auditoría de dependencias y pruebas
+# Revisión automática en cada envío: linter, auditoría de dependencias, pruebas
+# con cobertura, prueba de humo de la versión web y contenedor.
+# Revisado con la lista de la semana 9: docs/06_operacion/revision_configuracion.md
 name: Calidad
 
 on:
@@ -11,12 +13,17 @@ permissions:
 jobs:
   revision:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        # 3.12 como en la semana 6 y 3.13, la versión del equipo del taller
+        python-version: ["3.12", "3.13"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
 
       - name: Instalar herramientas de desarrollo
         run: pip install -r requirements-dev.txt
@@ -27,8 +34,48 @@ jobs:
       - name: Auditoría de dependencias (pip-audit)
         run: pip-audit -r requirements-dev.txt
 
-      - name: Pruebas
-        run: python -m pytest -v
+      - name: Pruebas con cobertura de líneas y de ramas
+        run: python -m pytest -v --cov=app --cov-branch --cov-report=term-missing
 
       - name: Ejemplo ejecutable
         run: python -m app.cobros
+
+      - name: Prueba de humo de la versión web
+        run: |
+          python -m app.web &
+          PID=$!
+          for _ in 1 2 3 4 5; do
+            curl -fs http://127.0.0.1:8000/salud && break
+            sleep 1
+          done
+          test "$(curl -fs http://127.0.0.1:8000/salud)" = "ok"
+          curl -fs http://127.0.0.1:8000/ | grep -q "Taller Dos Ruedas"
+          kill $PID
+
+  contenedor:
+    needs: revision
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Revisar el Dockerfile (hadolint)
+        run: docker run --rm -i hadolint/hadolint:v2.12.0 < Dockerfile
+
+      - name: Revisar el pipeline (actionlint)
+        run: docker run --rm -v "$PWD:/repo" --workdir /repo rhysd/actionlint:1.7.12 -color
+
+      - name: Construir la imagen
+        run: docker build -t taller-dos-ruedas .
+
+      - name: Ejecutar el contenedor y comprobar /salud y el usuario
+        run: |
+          docker run -d --name taller -p 127.0.0.1:8000:8000 taller-dos-ruedas
+          for _ in 1 2 3 4 5 6 7 8 9 10; do
+            curl -fs http://127.0.0.1:8000/salud && break
+            sleep 1
+          done
+          test "$(curl -fs http://127.0.0.1:8000/salud)" = "ok"
+          test "$(docker exec taller id -u)" = "10001"
+          docker logs taller
+          docker rm -f taller

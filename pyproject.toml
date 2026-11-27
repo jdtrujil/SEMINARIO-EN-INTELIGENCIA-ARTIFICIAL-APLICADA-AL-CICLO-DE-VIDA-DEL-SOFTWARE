@@ -1,6 +1,6 @@
 [project]
 name = "taller-motos"
-version = "0.2.0"
+version = "0.3.0"
 description = "Control de ingreso y cobros del Taller Dos Ruedas"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -26,3 +26,11 @@ select = ["E", "F", "B", "S"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.coverage.run]
+# Solo se mide el código del sistema, no las pruebas.
+source = ["app"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
