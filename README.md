@@ -47,6 +47,8 @@ python -m app.web
 
 Abre http://127.0.0.1:8000 para validar una placa y calcular un cobro. `http://127.0.0.1:8000/salud` responde `ok`. El servidor escucha solo en este equipo; el puerto se cambia con la variable `TALLER_PUERTO`. Pasos completos, verificación y cómo volver atrás: [guía de despliegue](docs/06_operacion/guia_despliegue.md).
 
+En Windows, `desplegar_windows.bat` hace todo con doble clic: prepara el entorno, corre las pruebas y, solo si pasan, arranca la versión web y abre el navegador.
+
 Con Docker:
 
 ```
@@ -127,6 +129,7 @@ tests/
 docs/                       Documentos de cada módulo (ver docs/README.md)
 .github/workflows/          Revisión automática en GitHub Actions
 Dockerfile, .dockerignore   Contenedor de la versión web
+desplegar_windows.bat       Despliegue local en Windows con un doble clic
 pyproject.toml              Datos del proyecto y configuración de ruff
 requirements-dev.txt        Herramientas de revisión con versión fijada
 .env.example                Plantilla de variables de entorno

@@ -44,6 +44,17 @@ py -m app.web
 
 El servidor escucha solo en 127.0.0.1, así que nadie más en la red puede entrar. Abrirlo a la red del taller (`TALLER_HOST`) no se recomienda hasta que exista el inicio de sesión de los trabajadores.
 
+### Atajo: un doble clic
+
+`desplegar_windows.bat`, en la raíz del repositorio, hace los pasos 2 a 4 en orden:
+
+1. Crea el entorno virtual.
+2. Instala las herramientas con versión fijada.
+3. Corre las pruebas y **no despliega si alguna falla**.
+4. Arranca el servidor y abre el navegador.
+
+Se usa con doble clic sobre el archivo, dentro de la carpeta del proyecto.
+
 ## 3. Opción B: en un contenedor Docker
 
 ```
