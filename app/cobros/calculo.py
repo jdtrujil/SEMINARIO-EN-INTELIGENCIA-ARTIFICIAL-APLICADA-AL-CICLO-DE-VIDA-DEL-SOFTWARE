@@ -29,5 +29,26 @@ class ResumenCobro:
 
 
 def calcular_cobro(items: list[ItemCobro]) -> ResumenCobro:
-    """Pendiente: se implementa en el paso 3, después de las pruebas."""
-    raise NotImplementedError("calcular_cobro todavía no está implementada")
+    """Suma los repuestos y la mano de obra de una orden, sin IVA.
+
+    Lanza ValueError si un ítem no tiene precio, tiene precio negativo,
+    cantidad menor que 1 o un tipo distinto de repuesto o mano de obra.
+    """
+    total_repuestos = 0
+    total_mano_obra = 0
+    for item in items:
+        if item.tipo not in ("repuesto", "mano de obra"):
+            raise ValueError(f"Tipo de ítem no válido: {item.tipo}. Use repuesto o mano de obra")
+        if item.precio_unitario is None:
+            if item.tipo == "repuesto":
+                raise ValueError("Escriba el precio del repuesto")
+            raise ValueError("Escriba el valor de la mano de obra")
+        if item.precio_unitario < 0:
+            raise ValueError("El precio no puede ser negativo")
+        if item.cantidad < 1:
+            raise ValueError("La cantidad debe ser al menos 1")
+        if item.tipo == "repuesto":
+            total_repuestos += item.cantidad * item.precio_unitario
+        else:
+            total_mano_obra += item.cantidad * item.precio_unitario
+    return ResumenCobro(total_repuestos, total_mano_obra, total_repuestos + total_mano_obra)
