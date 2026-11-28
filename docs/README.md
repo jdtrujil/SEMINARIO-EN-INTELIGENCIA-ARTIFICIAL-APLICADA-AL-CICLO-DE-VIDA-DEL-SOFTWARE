@@ -1,7 +1,7 @@
 # Documentos del proyecto por módulo
 
 Proyecto Taller Dos Ruedas. Estudiante: Juan Diego Trujillo Rodriguez.
-El informe final está en [informe_final.md](../informe_final.md) y su PDF en [entrega_final/](entrega_final/).
+El informe final está en [informe_final.md](../informe_final.md) y su PDF en [entrega_final/](entrega_final/). El video de la sustentación está en [Google Drive](https://drive.google.com/file/d/1NxSysAmFsPcgUIF8xGq4UKu68BkcHQdd/view?usp=drive_link).
 
 | Módulo | Semana | Documentos |
 |---|---|---|

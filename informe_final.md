@@ -170,6 +170,7 @@ La herramienta fue Claude (Anthropic) en dos modos: chat para los documentos y a
 
 ## 8. Anexos
 
+- Video de la sustentación: [Google Drive](https://drive.google.com/file/d/1NxSysAmFsPcgUIF8xGq4UKu68BkcHQdd/view?usp=drive_link).
 - Bitácora de uso de IA: [bitacora_ia.md](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/bitacora_ia.md), 45 entradas de las semanas 5 a 10, más el recorrido de las semanas 2 a 4.
 - Documentos de cada módulo: [índice de docs/](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/README.md).
   - [Propuesta](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/01_fundamentos/propuesta.md).
