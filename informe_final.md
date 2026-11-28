@@ -15,9 +15,9 @@ El Taller Dos Ruedas (nombre ficticio) registra el ingreso de las motos en un cu
 - La factura, que se guarda al terminar, y la consulta del cliente con su número de orden.
 - Una base de datos PostgreSQL 16, o un archivo SQLite si no hay PostgreSQL.
 
-Se despliega con Python o en un contenedor, y el pipeline lo prueba en cada envío.
+La interfaz usa los colores del logo del taller, y el logo y el nombre real se configuran en cada equipo. Se despliega con Python o en un contenedor, y el pipeline lo prueba en cada envío.
 
-Usé Claude en las seis fases: prompts y propuesta, requisitos, diseño, código, pruebas y operación. Cada resultado quedó registrado en una bitácora de 44 entradas, y 7 de esas sugerencias se rechazaron. La verificación encontró errores de la IA en cada fase:
+Usé Claude en las seis fases: prompts y propuesta, requisitos, diseño, código, pruebas y operación. Cada resultado quedó registrado en una bitácora de 45 entradas, y 7 de esas sugerencias se rechazaron. La verificación encontró errores de la IA en cada fase:
 
 - **Requisitos:** citas inventadas.
 - **Diseño:** microservicios para 25 motos al día y datos personales que nadie pidió.
@@ -25,7 +25,7 @@ Usé Claude en las seis fases: prompts y propuesta, requisitos, diseño, código
 - **Pruebas:** pruebas que pasaban sin comprobar nada.
 - **Operación:** un pipeline con acciones sin fijar y sin límite de tiempo.
 
-El resultado final son 176 pruebas en verde (221 en el pipeline, que repite las de las órdenes contra PostgreSQL 16), con 100 % de cobertura de líneas y de ramas en las reglas del cobro y de las órdenes y 100 % de mutantes detectados en las reglas. De los 20 escenarios de las historias de usuario se cumplen 11, 3 se cumplen en parte y 6 no se han construido.
+El resultado final son 194 pruebas en verde (239 en el pipeline, que repite las de las órdenes contra PostgreSQL 16), con 100 % de cobertura de líneas y de ramas en las reglas del cobro y de las órdenes y 100 % de mutantes detectados en las reglas. De los 20 escenarios de las historias de usuario se cumplen 11, 3 se cumplen en parte y 6 no se han construido.
 
 ## 2. Problema y usuario
 
@@ -126,9 +126,9 @@ La herramienta fue Claude (Anthropic) en dos modos: chat para los documentos y a
   | HU-09 Historial por placa (Could) y HU-10 Entrega (Should) | Sin construir |
 
 - **Pruebas:**
-  - 176 pruebas: 20 de las semanas 5 y 6, 50 de la semana 7, 34 de la versión web, 3 de aceptación de la sustentación y 69 de la base de datos (reglas, páginas por HTTP y 13 de aceptación).
-  - En el pipeline, las pruebas de las órdenes se repiten contra un PostgreSQL 16 desechable: 221 en total.
-  - Cobertura en el pipeline: 100 % de líneas y de ramas en `calculo.py`, `servicio.py` de cobros y de órdenes, `placas.py` y `paginas.py`, y 93 % del total. Lo que falta son los demos, el ciclo de arranque del servidor y algunas ramas de error de la base de datos.
+  - 194 pruebas: 20 de las semanas 5 y 6, 50 de la semana 7, 34 de la versión web, 3 de aceptación de la sustentación, 69 de la base de datos (reglas, páginas por HTTP y 13 de aceptación) y 18 de la interfaz.
+  - En el pipeline, las pruebas de las órdenes se repiten contra un PostgreSQL 16 desechable: 239 en total.
+  - Cobertura en el pipeline: 100 % de líneas y de ramas en `calculo.py`, `servicio.py` de cobros y de órdenes, `placas.py` y `paginas.py`, y 94 % del total. Lo que falta son los demos, el ciclo de arranque del servidor y algunas ramas de error de la base de datos.
   - Mutación a mano: 11 de 11 mutantes detectados en las reglas y en la versión web.
   - [Última ejecución del pipeline en `main`](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/actions/workflows/calidad.yml?query=branch%3Amain), en verde con Python 3.12, 3.13, PostgreSQL y el contenedor. La [ejecución 46084960626](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/actions/runs/46084960626) es la de la rama de la base de datos.
 - **Pendientes y por qué:**
@@ -170,7 +170,7 @@ La herramienta fue Claude (Anthropic) en dos modos: chat para los documentos y a
 
 ## 8. Anexos
 
-- Bitácora de uso de IA: [bitacora_ia.md](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/bitacora_ia.md), 44 entradas de las semanas 5 a 10, más el recorrido de las semanas 2 a 4.
+- Bitácora de uso de IA: [bitacora_ia.md](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/bitacora_ia.md), 45 entradas de las semanas 5 a 10, más el recorrido de las semanas 2 a 4.
 - Documentos de cada módulo: [índice de docs/](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/README.md).
   - [Propuesta](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/01_fundamentos/propuesta.md).
   - [Requisitos](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/02_requisitos/Trujillo_Juan_S3_Requisitos.pdf).

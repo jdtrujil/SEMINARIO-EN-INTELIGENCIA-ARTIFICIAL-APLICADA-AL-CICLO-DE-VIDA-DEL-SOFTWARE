@@ -15,5 +15,7 @@ __pycache__/
 .coverage
 # Bases de datos locales del taller
 *.db
+# Logo y marca reales del taller: se configuran en cada equipo
+marca/
 htmlcov/
 coverage.xml

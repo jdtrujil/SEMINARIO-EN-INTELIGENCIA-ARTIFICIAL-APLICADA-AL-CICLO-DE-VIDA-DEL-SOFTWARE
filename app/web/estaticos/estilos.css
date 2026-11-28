@@ -1,0 +1,341 @@
+/* Taller Dos Ruedas: colores del logo del taller (azul, rojo, blanco y carbón). */
+:root {
+  --azul: #2b3f80;
+  --azul-oscuro: #1d2c5c;
+  --azul-claro: #e6ebf7;
+  --rojo: #e63b2e;
+  --rojo-oscuro: #b8281f;
+  --carbon: #212023;
+  --carbon-2: #2e2d33;
+  --gris: #f1f2f6;
+  --borde: #d8dce6;
+  --texto: #1d2230;
+  --texto-suave: #5d6475;
+  --verde: #2e7d4f;
+  --verde-claro: #e3f3ea;
+  --ambar: #b7791f;
+  --ambar-claro: #fdf1dc;
+  --placa: #f5cf1d;
+  --radio: 14px;
+  --sombra: 0 2px 6px rgba(20, 24, 40, 0.08), 0 8px 24px rgba(20, 24, 40, 0.06);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+  background: var(--gris);
+  color: var(--texto);
+  line-height: 1.45;
+}
+
+a { color: var(--azul); }
+
+/* --- Encabezado con el logo ------------------------------------------------ */
+
+.encabezado {
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.07), transparent 40%),
+    linear-gradient(135deg, var(--carbon) 0%, var(--carbon-2) 100%);
+  border-bottom: 4px solid var(--rojo);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.encabezado-interno {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.marca { display: flex; align-items: center; gap: 14px; text-decoration: none; color: inherit; }
+.marca img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 0 3px var(--rojo);
+  background: var(--carbon);
+  transition: transform 0.25s ease;
+}
+.marca:hover img { transform: rotate(-4deg) scale(1.05); }
+.marca h1 { margin: 0; font-size: 1.45rem; letter-spacing: 0.3px; }
+.marca p { margin: 2px 0 0; color: #c9cbd4; font-size: 0.9rem; }
+
+.menu { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+.menu a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 999px;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.menu a:hover { background: rgba(255, 255, 255, 0.12); transform: translateY(-1px); }
+.menu a.activo { background: var(--rojo); }
+
+/* --- Contenido ---------------------------------------------------------- */
+
+main { max-width: 1120px; margin: 24px auto; padding: 0 20px; }
+
+section {
+  background: #fff;
+  border-radius: var(--radio);
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  box-shadow: var(--sombra);
+  animation: aparecer 0.35s ease both;
+}
+
+h2 {
+  margin: 0 0 14px;
+  font-size: 1.15rem;
+  color: var(--azul-oscuro);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+h2::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--rojo);
+  flex: none;
+}
+
+.rejilla { display: grid; gap: 20px; grid-template-columns: 1fr; }
+@media (min-width: 920px) {
+  .rejilla { grid-template-columns: 380px 1fr; align-items: start; }
+}
+
+/* --- Formularios ----------------------------------------------------------- */
+
+label { font-weight: 600; display: block; margin-bottom: 6px; }
+
+input, select, textarea {
+  font: inherit;
+  width: 100%;
+  padding: 9px 11px;
+  border: 1.5px solid var(--borde);
+  border-radius: 10px;
+  background: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--azul);
+  box-shadow: 0 0 0 4px rgba(43, 63, 128, 0.18);
+}
+textarea { min-height: 84px; resize: vertical; }
+
+.campo { margin-bottom: 14px; }
+
+/* La placa se ve como una placa de moto colombiana: amarilla con letras negras. */
+input[name="placa"] {
+  background: var(--placa);
+  color: #111;
+  border: 2px solid #111;
+  font-family: "Arial Black", Arial, sans-serif;
+  font-size: 1.35rem;
+  letter-spacing: 4px;
+  text-align: center;
+  text-transform: uppercase;
+  max-width: 260px;
+}
+input[name="placa"]::placeholder { color: rgba(0, 0, 0, 0.45); font-size: 0.85rem; letter-spacing: 0; }
+input[name="placa"].valida { box-shadow: 0 0 0 4px rgba(46, 125, 79, 0.35); }
+input[name="placa"].invalida { box-shadow: 0 0 0 4px rgba(230, 59, 46, 0.35); }
+.ayuda { font-size: 0.85rem; color: var(--texto-suave); margin-top: 4px; min-height: 1.2em; }
+
+.fila-placa { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+.fila-placa > div { flex: 1; }
+.fila-placa .boton-placa { flex: none; }
+
+button, .boton {
+  font: inherit;
+  font-weight: 600;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 18px;
+  cursor: pointer;
+  background: var(--azul);
+  color: #fff;
+  text-decoration: none;
+  display: inline-block;
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+button:hover, .boton:hover { background: var(--azul-oscuro); transform: translateY(-1px); box-shadow: 0 6px 14px rgba(29, 44, 92, 0.25); }
+button:active { transform: translateY(1px); }
+button.terminar { background: var(--rojo); }
+button.terminar:hover { background: var(--rojo-oscuro); }
+button.secundario { background: #fff; color: var(--azul); border: 1.5px solid var(--azul); }
+button.secundario:hover { background: var(--azul-claro); }
+:focus-visible { outline: 3px solid var(--rojo); outline-offset: 2px; }
+
+/* --- Avisos ----------------------------------------------------------------- */
+
+.error, .ok {
+  padding: 12px 14px 12px 44px;
+  border-radius: 10px;
+  position: relative;
+  animation: deslizar 0.35s ease both;
+}
+.error { background: #fdeceb; border: 1px solid #f5c2be; color: #8e1c14; }
+.ok { background: var(--verde-claro); border: 1px solid #b9dfc9; color: #1d5a37; }
+.error::before, .ok::before {
+  position: absolute;
+  left: 14px;
+  top: 10px;
+  font-weight: 800;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 0.8rem;
+}
+.error::before { content: "!"; background: var(--rojo); }
+.ok::before { content: "✓"; background: var(--verde); }
+
+/* --- Tablas ------------------------------------------------------------------ */
+
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid #eceef3; }
+th { color: var(--texto-suave); font-size: 0.88rem; font-weight: 700; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+tr.total th, tr.total td { font-size: 1.15rem; color: var(--azul-oscuro); border-top: 2px solid var(--azul); }
+tbody tr, .lista tr { transition: background 0.15s ease; }
+.lista tr[data-href] { cursor: pointer; }
+.lista tr[data-href]:hover { background: var(--azul-claro); }
+.ficha th { width: 38%; }
+.c-numero { width: 32px; }
+.c-tipo { width: 160px; }
+.c-cantidad { width: 96px; }
+.c-precio { width: 150px; }
+
+/* --- Etapas ------------------------------------------------------------------ */
+
+.etapa {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  background: var(--azul-claro);
+  color: var(--azul-oscuro);
+}
+.e-recibida .etapa { background: var(--ambar-claro); color: var(--ambar); }
+.e-reparacion .etapa { background: var(--azul-claro); color: var(--azul); }
+.e-terminada .etapa { background: var(--verde-claro); color: var(--verde); }
+
+.pasos { list-style: none; display: flex; padding: 0; margin: 6px 0 18px; counter-reset: paso; }
+.pasos li {
+  flex: 1;
+  position: relative;
+  text-align: center;
+  font-weight: 600;
+  color: var(--texto-suave);
+  padding-top: 42px;
+  counter-increment: paso;
+}
+.pasos li::before {
+  content: counter(paso);
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  border: 3px solid var(--borde);
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+.pasos li::after {
+  content: "";
+  position: absolute;
+  top: 16px;
+  left: -50%;
+  width: 100%;
+  height: 4px;
+  background: var(--borde);
+}
+.pasos li:first-child::after { display: none; }
+.pasos li.hecho { color: var(--verde); }
+.pasos li.hecho::before { content: "✓"; background: var(--verde); border-color: var(--verde); color: #fff; }
+.pasos li.hecho::after, .pasos li.actual::after { background: var(--verde); }
+.pasos li.actual { color: var(--azul-oscuro); }
+.pasos li.actual::before { background: var(--azul); border-color: var(--azul); color: #fff; animation: latido 1.8s ease infinite; }
+
+/* --- Tablero del taller ------------------------------------------------------ */
+
+.tablero { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); margin-bottom: 20px; }
+.contador {
+  background: #fff;
+  border-radius: var(--radio);
+  padding: 16px 18px;
+  box-shadow: var(--sombra);
+  border: 2px solid transparent;
+  text-align: left;
+  color: var(--texto);
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.contador:hover { transform: translateY(-3px); background: #fff; box-shadow: var(--sombra); }
+.contador.activo { border-color: var(--rojo); }
+.contador strong { display: block; font-size: 2rem; color: var(--azul-oscuro); line-height: 1.1; }
+.contador span { color: var(--texto-suave); font-weight: 600; }
+
+.herramientas { display: flex; gap: 10px; margin-bottom: 12px; }
+.herramientas input { max-width: 320px; }
+
+/* --- Número de orden y factura ------------------------------------------------ */
+
+.numero {
+  font-size: 1.7rem;
+  font-weight: 800;
+  letter-spacing: 3px;
+  color: var(--azul-oscuro);
+  background: var(--azul-claro);
+  padding: 2px 12px;
+  border-radius: 10px;
+  margin-left: 6px;
+}
+.acciones { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+.acciones form { margin: 0; }
+.subtotal-vivo { font-weight: 700; color: var(--azul-oscuro); margin: 8px 0 0; min-height: 1.4em; }
+
+.consulta-caja { max-width: 620px; margin: 0 auto 20px; }
+.consulta-caja input[name="numero"] { font-size: 1.6rem; letter-spacing: 6px; text-align: center; font-weight: 700; }
+
+footer { color: var(--texto-suave); font-size: 0.85rem; text-align: center; margin: 8px auto 32px; padding: 0 20px; max-width: 900px; }
+
+/* --- Animaciones --------------------------------------------------------------- */
+
+@keyframes aparecer { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes deslizar { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
+@keyframes latido { 0%, 100% { box-shadow: 0 0 0 0 rgba(43, 63, 128, 0.45); } 50% { box-shadow: 0 0 0 8px rgba(43, 63, 128, 0); } }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* --- Impresión de la factura -------------------------------------------------- */
+
+@media print {
+  body { background: #fff; }
+  .encabezado { position: static; box-shadow: none; }
+  .menu, .no-imprimir, form, footer { display: none !important; }
+  section { box-shadow: none; border: 1px solid #ccc; animation: none; }
+}

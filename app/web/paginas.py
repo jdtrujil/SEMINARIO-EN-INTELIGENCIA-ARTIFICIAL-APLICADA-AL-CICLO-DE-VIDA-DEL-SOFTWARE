@@ -28,32 +28,14 @@ CAMPOS_FILA = ("tipo", "descripcion", "cantidad", "precio")
 _CON_PUNTO_DE_MILES = re.compile(r"-?[0-9]{1,3}(\.[0-9]{3})+")
 _ENTERO = re.compile(r"-?[0-9]+")
 
-_ESTILOS = """
-body{font-family:system-ui,"Segoe UI",Arial,sans-serif;margin:0;
-background:#f4f5f7;color:#1d2430}
-header{background:#1f3a5f;color:#fff;padding:18px 24px}
-header h1{margin:0;font-size:1.5rem}header p{margin:4px 0 0;opacity:.85}
-main{max-width:920px;margin:24px auto;padding:0 16px}
-section{background:#fff;border-radius:10px;padding:20px 24px;margin-bottom:20px;
-box-shadow:0 1px 3px rgba(0,0,0,.08)}
-h2{margin-top:0;font-size:1.2rem;color:#1f3a5f}
-label{font-weight:600;display:block;margin-bottom:6px}
-input,select{font:inherit;padding:7px 9px;border:1px solid #b8c0cc;border-radius:6px;
-box-sizing:border-box;width:100%}
-table{border-collapse:collapse;width:100%}
-th,td{text-align:left;padding:7px 8px;border-bottom:1px solid #e3e6ea}
-td.num,th.num{text-align:right}
-tr.total th,tr.total td{font-size:1.1rem;border-top:2px solid #1f3a5f}
-button{font:inherit;background:#1f3a5f;color:#fff;border:0;border-radius:6px;
-padding:9px 18px;margin-top:12px;cursor:pointer}
-.error{background:#fdecea;border-left:5px solid #c62828;padding:10px 14px;
-border-radius:6px}
-.ok{background:#e8f5e9;border-left:5px solid #2e7d32;padding:10px 14px;
-border-radius:6px}
-.fila-placa{display:flex;gap:10px;align-items:flex-end}.fila-placa div{flex:1}
-footer{color:#5b6573;font-size:.85rem;text-align:center;margin:8px 0 28px}
-a{color:#1f3a5f}
-"""
+NOMBRE_POR_DEFECTO = "Taller Dos Ruedas"
+_marca = {"nombre": NOMBRE_POR_DEFECTO}
+_CLASE_ACTIVO = ' class="activo"'
+MENU = (
+    ("taller", "/", "Taller"),
+    ("consulta", "/consulta", "Consulta del cliente"),
+    ("calculadora", "/calculadora", "Calculadora"),
+)
 
 
 PIE_DEMO = (
@@ -62,25 +44,44 @@ PIE_DEMO = (
 )
 
 
-def pagina(titulo: str, contenido: str, pie: str = PIE_DEMO) -> str:
-    """Arma una página completa con el encabezado y el pie del taller.
+def configurar_marca(nombre: str) -> None:
+    """Nombre del taller que se muestra en el encabezado (TALLER_NOMBRE)."""
+    _marca["nombre"] = nombre.strip() or NOMBRE_POR_DEFECTO
+
+
+def pagina(titulo: str, contenido: str, pie: str = PIE_DEMO, activo: str = "") -> str:
+    """Arma una página completa con el encabezado, el logo y el pie del taller.
+
+    Los estilos y el JavaScript se sirven aparte (/estaticos/), así la política
+    de seguridad no permite estilos ni scripts escritos dentro de la página.
 
     Parámetros:
         titulo: título de la pestaña; se escapa aquí.
         contenido: HTML del cuerpo, ya escapado por quien lo arma.
         pie: texto del pie de página; se escapa aquí.
+        activo: clave del menú de la página actual (taller, consulta o calculadora).
 
     Devuelve:
         El documento HTML completo.
     """
+    nombre = html.escape(_marca["nombre"])
+    menu = "".join(
+        f'<a href="{ruta}"{_CLASE_ACTIVO if clave == activo else ""}>{texto}</a>'
+        for clave, ruta, texto in MENU
+    )
     return (
         "<!DOCTYPE html>\n"
         '<html lang="es"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width, initial-scale=1">'
-        f"<title>{html.escape(titulo)} | Taller Dos Ruedas</title>"
-        f"<style>{_ESTILOS}</style></head><body>"
-        "<header><h1>Taller Dos Ruedas</h1>"
-        "<p>Ingreso de motos y cobro de repuestos y mano de obra, sin IVA</p></header>"
+        f"<title>{html.escape(titulo)} | {nombre}</title>"
+        '<link rel="icon" href="/logo">'
+        '<link rel="stylesheet" href="/estaticos/estilos.css">'
+        '<script src="/estaticos/app.js" defer></script></head><body>'
+        '<header class="encabezado"><div class="encabezado-interno">'
+        f'<a class="marca" href="/"><img src="/logo" alt="Logo de {nombre}">'
+        f"<div><h1>{nombre}</h1>"
+        "<p>Ingreso de motos y cobro de repuestos y mano de obra, sin IVA</p></div></a>"
+        f'<nav class="menu">{menu}</nav></div></header>'
         f"<main>{contenido}</main>"
         f"<footer>{html.escape(pie)}</footer>"
         "</body></html>"
@@ -88,8 +89,12 @@ def pagina(titulo: str, contenido: str, pie: str = PIE_DEMO) -> str:
 
 
 def pagina_inicio() -> str:
-    """Página principal con el formulario de la placa y el del cobro."""
-    return pagina("Inicio", _formulario_placa("") + _formulario_cobro(None))
+    """Calculadora: formulario de la placa y del cobro, sin guardar datos."""
+    return pagina(
+        "Calculadora",
+        _formulario_placa("") + _formulario_cobro(None),
+        activo="calculadora",
+    )
 
 
 def pagina_no_encontrada() -> str:
@@ -229,8 +234,9 @@ def _formulario_placa(valor: str, aviso: str = "") -> str:
         '<form method="post" action="/placa"><div class="fila-placa"><div>'
         '<label for="placa">Placa</label>'
         f'<input id="placa" name="placa" value="{html.escape(valor)}" '
-        'placeholder="ABC12D o, si es antigua, ABC12" autocomplete="off"></div>'
-        '<div style="flex:0"><button type="submit">Validar placa</button></div>'
+        'placeholder="ABC12D o, si es antigua, ABC12" autocomplete="off">'
+        '<div class="ayuda" id="placa-ayuda" aria-live="polite"></div></div>'
+        '<div class="boton-placa"><button type="submit">Validar placa</button></div>'
         "</div></form></section>"
     )
 
@@ -270,8 +276,8 @@ def _formulario_cobro(filas: Optional[List[Dict[str, str]]], aviso: str = "") ->
         "<section><h2>Cobro de la orden</h2>"
         f"{aviso}"
         '<form method="post" action="/cobro"><table>'
-        '<colgroup><col style="width:28px"><col style="width:150px"><col>'
-        '<col style="width:90px"><col style="width:140px"></colgroup>'
+        '<colgroup><col class="c-numero"><col class="c-tipo"><col>'
+        '<col class="c-cantidad"><col class="c-precio"></colgroup>'
         "<tr><th>#</th><th>Tipo</th><th>Descripción</th><th>Cantidad</th>"
         "<th>Precio unitario</th></tr>"
         f"{''.join(cuerpo)}</table>"

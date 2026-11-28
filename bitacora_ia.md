@@ -19,7 +19,7 @@ Antes de escribir código, el proyecto ya usaba IA en cada entrega. El detalle d
 | 7 | Este repositorio: suite de pruebas y `registro_pruebas.md` | Entradas 23 a 31 de esta bitácora | Cuatro reglas inventadas descartadas, 17 decisiones sobre las pruebas de la IA y un error introducido que ninguna prueba atrapó hasta agregar dos casos |
 | 8 | Este repositorio: cobertura y mutación | Entradas 33 y 34 | La columna Missing mostró 4 ramas de seguridad sin probar; 100 % de cobertura no evitó que sobreviviera un mutante |
 | 9 | Este repositorio: pipeline y Dockerfile | Entradas 35 a 38 | Cuatro hallazgos en el pipeline de la semana 6, actionlint frenó una corrección del agente y la práctica de clase se rechazó con 12 problemas |
-| 10 | Versión web, docs/, informe, sustentación y base de datos | Entradas 32 y 39 a 44 | La prueba de la cabecera Server encontró un error del código generado; cada dato del informe se comprobó contra su fuente |
+| 10 | Versión web, docs/, informe, sustentación, base de datos e interfaz | Entradas 32 y 39 a 45 | La prueba de la cabecera Server encontró un error del código generado; cada dato del informe se comprobó contra su fuente |
 
 ## Entradas de la semana 5
 
@@ -425,14 +425,26 @@ Antes de escribir código, el proyecto ya usaba IA en cada entrega. El detalle d
 - **Verificación:** Se escribieron 69 pruebas nuevas, entre ellas 13 de aceptación con los datos de los escenarios, y las 107 anteriores pasan sin cambios. En la [ejecución 46084960626](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/actions/runs/46084960626), las pruebas de las órdenes corrieron también contra PostgreSQL 16: 221 pruebas en verde y 93 % de cobertura. Se recorrió el flujo completo en el navegador con datos ficticios: el registro oculta los números de orden y una sexta consulta seguida recibe 429.
 - **Commit relacionado:** [ebe82b9](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/commit/ebe82b9) Registro de motos con mecánico, etapas, historial, factura y consulta del cliente, con PostgreSQL
 
+### Entrada 45
+
+- **Fecha:** 2026-11-27
+- **Prompt o sugerencia:** Pedido del cliente después de revisar el despliegue: "El front es muy básico: trabaja con CSS y ponlo un poco más interactivo. Pon este logo del taller y respeta los colores para el sitio." Adjuntó el logo de su taller.
+- **Decisión:** Aceptada con cambios
+- **Por qué:** El agente sacó los colores del logo (azul, rojo, blanco y carbón) y escribió una hoja de estilos y un JavaScript pequeño, que se sirven aparte. Con eso la política de seguridad ya no permite estilos ni scripts en línea. Agregó el tablero por etapa, la búsqueda, la barra de etapas, copiar el número, el subtotal en vivo, la confirmación antes de terminar y la factura imprimible. Todo funciona sin JavaScript. Hubo tres cambios:
+  - Una línea del menú usaba comillas anidadas en una f-string, algo que Python solo acepta desde la 3.12, aunque el proyecto declara 3.8. Se reescribió.
+  - Se agregó la lectura del `.env` guardado con BOM por el Bloc de notas.
+  - El logo y el nombre real del taller se dejaron, como los nombres de los mecánicos, solo en el equipo (`marca/` y `.env`), fuera del repositorio. En el repositorio queda un emblema genérico con los mismos colores.
+- **Verificación:** Se agregaron 18 pruebas de la interfaz, entre ellas que no haya estilos en línea, que solo se sirvan los archivos de una lista cerrada, que el nombre se escape y que la política de seguridad no tenga `unsafe-inline`. Las anteriores pasan sin cambios. Se revisaron las páginas en el navegador con el logo, y el paquete de despliegue se probó descomprimido en una carpeta limpia.
+- **Commit relacionado:** [ea4b98b](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/commit/ea4b98b) Interfaz con los colores del logo del taller, y la solicitud de cambios #6
+
 ## Resumen
 
 | Decisión | Semana 5 | Semana 6 | Semana 7 | Entrega final (8 a 10) | Total |
 |---|---|---|---|---|---|
 | Aceptadas | 2 | 10 | 5 | 6 | 23 |
-| Aceptadas con cambios | 2 | 4 | 2 | 6 | 14 |
+| Aceptadas con cambios | 2 | 4 | 2 | 7 | 15 |
 | Rechazadas | 2 | 2 | 2 | 1 | 7 |
-| **Entradas** | 6 | 16 | 9 | 13 | **44** |
+| **Entradas** | 6 | 16 | 9 | 14 | **45** |
 
 ## Errores que atraparon las pruebas
 

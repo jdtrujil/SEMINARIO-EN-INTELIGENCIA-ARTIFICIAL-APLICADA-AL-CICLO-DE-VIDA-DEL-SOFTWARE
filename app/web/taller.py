@@ -31,18 +31,11 @@ PIE_TALLER = (
     "Se guardan la fecha y hora de ingreso, la placa, las observaciones, el mecánico, "
     "las etapas y la factura. No se guardan datos personales del cliente."
 )
-_ESTILOS_TALLER = (
-    "<style>"
-    "nav{margin:0 0 16px}nav a{margin-right:16px;font-weight:600}"
-    "textarea{font:inherit;padding:7px 9px;border:1px solid #b8c0cc;border-radius:6px;"
-    "width:100%;box-sizing:border-box;min-height:70px}"
-    ".campo{margin-bottom:12px}"
-    ".etapa{display:inline-block;padding:3px 10px;border-radius:12px;font-weight:600;"
-    "background:#e3ecf7;color:#1f3a5f}"
-    ".numero{font-size:1.6rem;font-weight:700;letter-spacing:2px;color:#1f3a5f}"
-    ".fila-botones form{display:inline-block;margin-right:10px}"
-    "</style>"
-)
+_CLASE_ETAPA = {
+    RECIBIDA: "e-recibida",
+    EN_REPARACION: "e-reparacion",
+    TERMINADA: "e-terminada",
+}
 
 
 @dataclass(frozen=True)
@@ -62,12 +55,28 @@ def _fecha(fecha: datetime) -> str:
     return fecha.strftime("%Y-%m-%d %H:%M")
 
 
-def _pagina(titulo: str, contenido: str) -> str:
-    menu = (
-        '<nav><a href="/">Taller</a><a href="/consulta">Consulta del cliente</a>'
-        '<a href="/calculadora">Calculadora de cobro</a></nav>'
+def _pagina(titulo: str, contenido: str, activo: str = "taller") -> str:
+    return pagina(titulo, contenido, pie=PIE_TALLER, activo=activo)
+
+
+def _insignia(etapa: str) -> str:
+    """Etiqueta de la etapa con el color que le corresponde."""
+    clase = _CLASE_ETAPA.get(etapa, "")
+    return f'<span class="{clase}"><span class="etapa">{_e(etapa)}</span></span>'
+
+
+def _pasos(etapa_actual: str) -> str:
+    """Barra de pasos Recibida, En reparación y Terminada."""
+    orden = [RECIBIDA, EN_REPARACION, TERMINADA]
+    actual = orden.index(etapa_actual) if etapa_actual in orden else -1
+    items = []
+    for posicion, etapa in enumerate(orden):
+        hecho = posicion < actual or (etapa == TERMINADA and actual == 2)
+        clase = "hecho" if hecho else ("actual" if posicion == actual else "")
+        items.append(f'<li class="{clase}">{_e(etapa)}</li>')
+    return (
+        '<ol class="pasos" aria-label="Etapas de la moto">' + "".join(items) + "</ol>"
     )
-    return pagina(titulo, _ESTILOS_TALLER + menu + contenido, pie=PIE_TALLER)
 
 
 def _aviso(clase: str, mensaje: str) -> str:
@@ -105,44 +114,62 @@ def panel(
     valores: Optional[dict] = None,
     codigo: int = 200,
 ) -> RespuestaWeb:
-    """Formulario de ingreso y lista de las motos del taller."""
+    """Tablero por etapa, formulario de ingreso y lista de las motos del taller."""
     valores = valores or {}
     mecanicos = repo.mecanicos()
+    ordenes = repo.ordenes_recientes()
+    cuenta = {RECIBIDA: 0, EN_REPARACION: 0, TERMINADA: 0}
+    for o in ordenes:
+        cuenta[o.etapa] = cuenta.get(o.etapa, 0) + 1
+    contadores = [
+        '<button type="button" class="contador activo" data-filtro-etapa="">'
+        f"<strong>{len(ordenes)}</strong><span>Todas</span></button>"
+    ] + [
+        f'<button type="button" class="contador" data-filtro-etapa="{_e(etapa)}">'
+        f"<strong>{total}</strong><span>{_e(etapa)}</span></button>"
+        for etapa, total in cuenta.items()
+    ]
+    tablero = '<div class="tablero no-imprimir">' + "".join(contadores) + "</div>"
     formulario = (
         "<section><h2>Registrar el ingreso de una moto</h2>"
         f"{aviso}"
         '<form method="post" action="/ordenes">'
         '<div class="campo"><label for="placa">Placa</label>'
         f'<input id="placa" name="placa" value="{_e(valores.get("placa", ""))}" '
-        'placeholder="ABC12D o, si es antigua, ABC12" autocomplete="off"></div>'
+        'placeholder="ABC12D o ABC12" autocomplete="off" maxlength="8">'
+        '<div class="ayuda" id="placa-ayuda" aria-live="polite"></div></div>'
         '<div class="campo"><label for="observaciones">Observaciones de ingreso</label>'
         '<textarea id="observaciones" name="observaciones" '
         'placeholder="Rayones, nivel de gasolina, accesorios que faltan">'
         f"{_e(valores.get('observaciones', ''))}</textarea></div>"
         '<div class="campo"><label for="mecanico">Mecánico que toma la moto</label>'
-        f'<select id="mecanico" name="mecanico">'
+        '<select id="mecanico" name="mecanico">'
         f"{_opciones_mecanico(mecanicos, valores.get('mecanico', ''))}</select></div>"
         '<button type="submit">Registrar ingreso</button></form></section>'
     )
     filas = "".join(
-        f'<tr><td><a href="/ordenes/{o.numero}">{o.numero}</a></td>'
-        f"<td>{_e(o.placa)}</td>"
+        f'<tr data-href="/ordenes/{o.numero}" data-etapa="{_e(o.etapa)}">'
+        f'<td><a href="/ordenes/{o.numero}">{o.numero}</a></td>'
+        f"<td><strong>{_e(o.placa)}</strong></td>"
         f"<td>{_e(_nombre(mecanicos, o.mecanico_id))}</td>"
-        f'<td><span class="etapa">{_e(o.etapa)}</span></td>'
+        f"<td>{_insignia(o.etapa)}</td>"
         f"<td>{_fecha(o.fecha_ingreso)}</td></tr>"
-        for o in repo.ordenes_recientes()
+        for o in ordenes
     )
-    lista = (
-        "<section><h2>Motos en el taller</h2>"
-        + (
-            "<table><tr><th>Orden</th><th>Placa</th><th>Mecánico</th><th>Etapa</th>"
-            f"<th>Ingreso</th></tr>{filas}</table>"
-            if filas
-            else "<p>Todavía no hay motos registradas.</p>"
+    if filas:
+        tabla = (
+            '<div class="herramientas no-imprimir">'
+            '<input id="buscar" type="search" aria-label="Buscar en la lista" '
+            'placeholder="Buscar por placa, número o mecánico"></div>'
+            '<table class="lista"><thead><tr><th>Orden</th><th>Placa</th>'
+            "<th>Mecánico</th><th>Etapa</th><th>Ingreso</th></tr></thead>"
+            f"<tbody>{filas}</tbody></table>"
         )
-        + "</section>"
-    )
-    return RespuestaWeb(codigo, _pagina("Taller", formulario + lista))
+    else:
+        tabla = "<p>Todavía no hay motos registradas.</p>"
+    lista = f"<section><h2>Motos en el taller</h2>{tabla}</section>"
+    contenido = tablero + f'<div class="rejilla">{formulario}{lista}</div>'
+    return RespuestaWeb(codigo, _pagina("Taller", contenido))
 
 
 def registrar(
@@ -197,10 +224,17 @@ def _tabla_items(items: List[ItemCobro], resumen: Optional[ResumenCobro]) -> str
 
 
 def _boton_etapa(numero: str, etapa: str, texto: str) -> str:
+    confirmar, clase = "", ""
+    if etapa == TERMINADA:
+        confirmar = (
+            ' data-confirmar="Al terminar se guarda la factura y ya no se pueden '
+            'agregar ítems. ¿Terminar la orden?"'
+        )
+        clase = ' class="terminar"'
     return (
-        f'<form method="post" action="/ordenes/{numero}/etapa">'
+        f'<form method="post" action="/ordenes/{numero}/etapa"{confirmar}>'
         f'<input type="hidden" name="etapa" value="{_e(etapa)}">'
-        f'<button type="submit">{_e(texto)}</button></form>'
+        f'<button type="submit"{clase}>{_e(texto)}</button></form>'
     )
 
 
@@ -217,13 +251,17 @@ def ver_orden(
     nombre_mecanico = _nombre(mecanicos, orden.mecanico_id)
     datos = (
         f'<section><h2>Orden <span class="numero">{orden.numero}</span></h2>{aviso}'
-        "<p>Este es el número que se le entrega al cliente para consultar su moto.</p>"
-        "<table>"
+        f"{_pasos(orden.etapa)}"
+        '<div class="acciones no-imprimir"><span>Este es el número que se le entrega '
+        "al cliente para consultar su moto.</span>"
+        f'<button type="button" class="secundario" data-copiar="{orden.numero}" hidden>'
+        "Copiar número</button></div>"
+        '<table class="ficha">'
         f"<tr><th>Placa</th><td>{_e(orden.placa)}</td></tr>"
         f"<tr><th>Ingreso</th><td>{_fecha(orden.fecha_ingreso)}</td></tr>"
         f"<tr><th>Mecánico</th><td>{_e(nombre_mecanico)}</td></tr>"
         f"<tr><th>Observaciones de ingreso</th><td>{_e(orden.observaciones)}</td></tr>"
-        f'<tr><th>Etapa</th><td><span class="etapa">{_e(orden.etapa)}</span></td></tr>'
+        f"<tr><th>Etapa</th><td>{_insignia(orden.etapa)}</td></tr>"
         "</table></section>"
     )
     historial = "".join(
@@ -244,7 +282,8 @@ def ver_orden(
     elif orden.etapa == EN_REPARACION:
         acciones = (
             "<section><h2>Registrar repuesto o mano de obra</h2>"
-            f'<form method="post" action="/ordenes/{orden.numero}/items"><table>'
+            f'<form method="post" action="/ordenes/{orden.numero}/items" data-subtotal>'
+            "<table>"
             "<tr><th>Tipo</th><th>Descripción</th><th>Cantidad</th>"
             "<th>Precio unitario</th></tr><tr>"
             f'<td><select name="tipo" aria-label="Tipo">'
@@ -259,7 +298,8 @@ def ver_orden(
             '<select id="quien" name="mecanico">'
             f"{_opciones_mecanico(mecanicos)}</select>"
             "</div>"
-            '<button type="submit">Agregar</button></form></section>'
+            '<button type="submit">Agregar</button>'
+            '<p class="subtotal-vivo" aria-live="polite"></p></form></section>'
             "<section><h2>Terminar</h2>"
             "<p>Al terminar se guarda la factura y ya no se pueden agregar ítems.</p>"
             f"{_boton_etapa(orden.numero, TERMINADA, 'Marcar como Terminada')}"
@@ -272,6 +312,8 @@ def ver_orden(
     cobro = f"<section><h2>{titulo_cobro}</h2>{_tabla_items(orden.items, resumen)}"
     if orden.etapa == TERMINADA:
         cobro += (
+            '<div class="acciones no-imprimir"><button type="button" data-imprimir '
+            "hidden>Imprimir factura</button></div>"
             "<p>La factura quedó guardada. El cliente puede ver el total en "
             '<a href="/consulta">Consulta del cliente</a> con el número '
             f"{orden.numero}.</p>"
@@ -334,17 +376,18 @@ def _formulario_consulta(numero: str = "") -> str:
 def consulta(aviso: str = "", numero: str = "", codigo: int = 200) -> RespuestaWeb:
     """Formulario de la consulta del cliente."""
     contenido = (
-        "<section><h2>Consulte su moto</h2>"
-        "<p>Escriba el número que le entregó el registrador.</p>"
+        '<section class="consulta-caja"><h2>Consulte su moto</h2>'
+        "<p>Escriba el número de ocho dígitos que le entregó el registrador.</p>"
         f"{aviso}{_formulario_consulta(numero)}</section>"
     )
-    return RespuestaWeb(codigo, _pagina("Consulta del cliente", contenido))
+    return RespuestaWeb(codigo, _pagina("Consulta del cliente", contenido, "consulta"))
 
 
 def _resultado(c: ConsultaCliente) -> str:
     partes = [
-        f"<section><h2>Orden {c.numero}</h2><table>"
-        f'<tr><th>Etapa</th><td><span class="etapa">{_e(c.etapa)}</span></td></tr>'
+        f'<section class="consulta-caja"><h2>Orden {c.numero}</h2>{_pasos(c.etapa)}'
+        '<table class="ficha">'
+        f"<tr><th>Etapa</th><td>{_insignia(c.etapa)}</td></tr>"
         f"<tr><th>Última actualización</th><td>{_fecha(c.actualizada)}</td></tr>"
         "</table>"
     ]
@@ -366,5 +409,5 @@ def consultar(repo: Repositorio, formulario: Formulario) -> RespuestaWeb:
     except servicio.OrdenNoEncontrada as error:
         return consulta(_aviso("error", str(error)), numero, codigo=404)
     return RespuestaWeb(
-        200, _pagina(f"Orden {resultado.numero}", _resultado(resultado))
+        200, _pagina(f"Orden {resultado.numero}", _resultado(resultado), "consulta")
     )
