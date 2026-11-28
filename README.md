@@ -46,7 +46,7 @@ Versión web (con SQLite solo usa la biblioteca estándar; para PostgreSQL, `pip
 python -m app.web
 ```
 
-Abre http://127.0.0.1:8000 para registrar motos, llevarlas por sus etapas y guardar la factura. El cliente consulta en http://127.0.0.1:8000/consulta. `http://127.0.0.1:8000/salud` responde `ok` si la base responde. Los nombres de los mecánicos se ponen en `.env` (`TALLER_MECANICOS`), que no se sube. El servidor escucha solo en este equipo; el puerto se cambia con la variable `TALLER_PUERTO`. Pasos completos, verificación y cómo volver atrás: [guía de despliegue](docs/06_operacion/guia_despliegue.md).
+Abre http://127.0.0.1:8000 para registrar motos, llevarlas por sus etapas y guardar la factura. El cliente consulta en http://127.0.0.1:8000/consulta. `http://127.0.0.1:8000/salud` responde `ok` si la base responde. Los nombres de los mecánicos, el nombre del taller y el logo se ponen en `.env` (`TALLER_MECANICOS`, `TALLER_NOMBRE` y `TALLER_LOGO`, con la imagen en la carpeta `marca/`). Ninguno se sube al repositorio. El servidor escucha solo en este equipo; el puerto se cambia con la variable `TALLER_PUERTO`. Pasos completos, verificación y cómo volver atrás: [guía de despliegue](docs/06_operacion/guia_despliegue.md).
 
 En Windows, `desplegar_windows.bat` hace todo con doble clic: prepara el entorno, corre las pruebas y, solo si pasan, arranca la versión web y abre el navegador.
 

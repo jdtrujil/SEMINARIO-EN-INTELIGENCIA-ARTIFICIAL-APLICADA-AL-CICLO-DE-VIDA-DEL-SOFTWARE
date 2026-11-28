@@ -74,6 +74,17 @@ Sin más configuración, los datos se guardan en el archivo `taller.db` de la ca
 
 El archivo `.env` tiene la clave y los nombres reales: nunca se sube al repositorio, y `.gitignore` lo excluye.
 
+### Nombre y logo del taller
+
+Guardar el logo como `marca/logo.png` (también sirven JPG, WEBP o SVG) y agregar en `.env`:
+
+```
+TALLER_NOMBRE=Nombre del taller
+TALLER_LOGO=marca/logo.png
+```
+
+La carpeta `marca/` tampoco se sube. Sin logo, la página muestra un emblema genérico con los mismos colores.
+
 ## 3. Opción B: en un contenedor Docker
 
 ```

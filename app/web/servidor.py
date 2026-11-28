@@ -11,6 +11,9 @@ se sube al repositorio:
     TALLER_BD_ARCHIVO  archivo SQLite, por defecto taller.db
     TALLER_MECANICOS   nombres separados por punto y coma; por defecto
                        "Mecánico 1;Mecánico 2"
+    TALLER_NOMBRE      nombre del taller en el encabezado
+    TALLER_LOGO        imagen del logo (PNG, JPG, WEBP o SVG); por defecto
+                       marca/logo.png, y si no existe, el emblema genérico
 
 Rutas:
     GET  /                      ingreso de motos y lista del taller
@@ -22,6 +25,7 @@ Rutas:
     GET  /calculadora           calculadora de cobro sin guardar datos
     POST /placa, POST /cobro    validan la placa y calculan el cobro
     GET  /salud                 "ok" si el servidor y la base responden
+    GET  /logo, /estaticos/...  logo, estilos y JavaScript de la interfaz
 """
 
 from __future__ import annotations
@@ -43,6 +47,7 @@ from app.ordenes.modelos import Mecanico, ahora
 from app.ordenes.repositorio import Repositorio, abrir, es_postgres
 from app.web import taller
 from app.web.paginas import (
+    NOMBRE_POR_DEFECTO,
     Formulario,
     Respuesta,
     pagina_error,
@@ -50,12 +55,28 @@ from app.web.paginas import (
     pagina_no_encontrada,
     procesar_cobro,
     procesar_placa,
+    configurar_marca,
 )
 
 HOST_POR_DEFECTO = "127.0.0.1"
 PUERTO_POR_DEFECTO = 8000
 ARCHIVO_BD_POR_DEFECTO = "taller.db"
 MECANICOS_POR_DEFECTO = "Mecánico 1;Mecánico 2"
+LOGO_POR_DEFECTO = "marca/logo.png"
+CARPETA_ESTATICOS = Path(__file__).parent / "estaticos"
+# Solo se sirven estos archivos: nada que venga de la ruta llega al disco.
+ESTATICOS = {
+    "estilos.css": "text/css; charset=utf-8",
+    "app.js": "text/javascript; charset=utf-8",
+    "emblema.svg": "image/svg+xml",
+}
+TIPOS_LOGO = {
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".webp": "image/webp",
+    ".svg": "image/svg+xml",
+}
 # Un formulario de cobro lleno ocupa menos de 2 KB; más de esto se rechaza.
 TAMANO_MAXIMO = 10_000
 MAXIMO_CAMPOS = 50
@@ -68,8 +89,8 @@ MENSAJE_DEMASIADOS_INTENTOS = (
 MENSAJE_SIN_BD = "No se pudo usar la base de datos. Revise que esté encendida"
 CABECERAS_SEGURIDAD = {
     "Content-Security-Policy": (
-        "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; "
-        "frame-ancestors 'none'; base-uri 'none'"
+        "default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self'; "
+        "form-action 'self'; frame-ancestors 'none'; base-uri 'none'"
     ),
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "no-referrer",
@@ -91,6 +112,8 @@ class ConfiguracionBD:
 
     destino: str
     mecanicos: Tuple[Mecanico, ...]
+    nombre: str = NOMBRE_POR_DEFECTO
+    logo: str = LOGO_POR_DEFECTO
 
 
 class LimiteDeIntentos:
@@ -150,6 +173,10 @@ class ManejadorTaller(BaseHTTPRequestHandler):
         orden = _RUTA_ORDEN.fullmatch(ruta)
         if ruta == "/salud":
             self._salud()
+        elif ruta.startswith("/estaticos/"):
+            self._estatico(ruta[len("/estaticos/") :])
+        elif ruta == "/logo":
+            self._logo()
         elif ruta == "/calculadora":
             self._responder(200, pagina_inicio())
         elif ruta == "/consulta":
@@ -216,6 +243,22 @@ class ManejadorTaller(BaseHTTPRequestHandler):
             return
         self._responder(200, "ok", tipo="text/plain; charset=utf-8")
 
+    def _estatico(self, nombre: str) -> None:
+        tipo = ESTATICOS.get(nombre)
+        if tipo is None:
+            self._responder(404, pagina_no_encontrada())
+            return
+        self._enviar(200, (CARPETA_ESTATICOS / nombre).read_bytes(), tipo)
+
+    def _logo(self) -> None:
+        """El logo del taller configurado en el equipo, o el emblema genérico."""
+        archivo = Path(self.server.configuracion.logo)
+        tipo = TIPOS_LOGO.get(archivo.suffix.lower())
+        if tipo is not None and archivo.is_file():
+            self._enviar(200, archivo.read_bytes(), tipo)
+        else:
+            self._estatico("emblema.svg")
+
     def _leer_formulario(self) -> Optional[Formulario]:
         """Lee el formulario enviado o responde el error y devuelve None."""
         try:
@@ -250,7 +293,11 @@ class ManejadorTaller(BaseHTTPRequestHandler):
         tipo: str = "text/html; charset=utf-8",
         ubicacion: Optional[str] = None,
     ) -> None:
-        datos = cuerpo.encode("utf-8")
+        self._enviar(codigo, cuerpo.encode("utf-8"), tipo, ubicacion)
+
+    def _enviar(
+        self, codigo: int, datos: bytes, tipo: str, ubicacion: Optional[str] = None
+    ) -> None:
         self.send_response(codigo)
         self.send_header("Content-Type", tipo)
         self.send_header("Content-Length", str(len(datos)))
@@ -302,7 +349,9 @@ def leer_configuracion_bd(entorno: Mapping[str, str]) -> ConfiguracionBD:
     if not nombres:
         raise ValueError("TALLER_MECANICOS debe tener al menos un nombre")
     mecanicos = tuple(Mecanico(i, nombre) for i, nombre in enumerate(nombres, start=1))
-    return ConfiguracionBD(destino, mecanicos)
+    nombre_taller = entorno.get("TALLER_NOMBRE", "").strip() or NOMBRE_POR_DEFECTO
+    logo = entorno.get("TALLER_LOGO", "").strip() or LOGO_POR_DEFECTO
+    return ConfiguracionBD(destino, mecanicos, nombre_taller, logo)
 
 
 def describir_destino(destino: str) -> str:
@@ -343,6 +392,7 @@ def crear_servidor(
     """
     configuracion = leer_configuracion_bd(os.environ if entorno is None else entorno)
     preparar_bd(configuracion)
+    configurar_marca(configuracion.nombre)
     return ServidorTaller((host, puerto), configuracion)
 
 
