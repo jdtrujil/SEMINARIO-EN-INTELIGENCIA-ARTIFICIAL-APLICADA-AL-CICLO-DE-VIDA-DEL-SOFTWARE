@@ -367,7 +367,8 @@ def cargar_archivo_env(ruta: Path) -> Dict[str, str]:
     valores: Dict[str, str] = {}
     if not ruta.is_file():
         return valores
-    for linea in ruta.read_text(encoding="utf-8").splitlines():
+    # utf-8-sig: el Bloc de notas puede guardar el archivo con BOM al comienzo.
+    for linea in ruta.read_text(encoding="utf-8-sig").splitlines():
         linea = linea.strip()
         if not linea or linea.startswith("#") or "=" not in linea:
             continue

@@ -181,3 +181,11 @@ def test_orden_muestra_los_pasos_y_pide_confirmar_al_terminar(levantar):
     assert "data-confirmar=" in texto
     assert "data-subtotal" in texto
     assert f'data-copiar="{orden.rsplit("/", 1)[1]}"' in texto
+
+
+def test_archivo_env_guardado_con_bom_se_lee_bien(tmp_path):
+    from app.web.servidor import cargar_archivo_env
+
+    archivo = tmp_path / ".env"
+    archivo.write_bytes("TALLER_NOMBRE=Taller de Prueba\n".encode("utf-8-sig"))
+    assert cargar_archivo_env(archivo) == {"TALLER_NOMBRE": "Taller de Prueba"}
