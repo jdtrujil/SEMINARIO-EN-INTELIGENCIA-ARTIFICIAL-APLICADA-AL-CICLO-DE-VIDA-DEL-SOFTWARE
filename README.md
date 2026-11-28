@@ -73,13 +73,14 @@ En Windows, si `python` no responde, usa `py` en su lugar.
 python -m pytest -v
 ```
 
-Corre las 176 pruebas (en el pipeline, las de órdenes se repiten contra PostgreSQL 16):
+Corre las 194 pruebas (en el pipeline, las de órdenes se repiten contra PostgreSQL 16, y son 239):
 
 - 10 de la semana 5 y 10 de la semana 6, escritas con unittest (pytest también las ejecuta).
 - 50 de la semana 7, diseñadas con particiones de equivalencia, valores límite y una tabla de decisión, para tres funciones: `calcular_cobro`, `validar_placa` y `registrar_item`.
 - 34 de la versión web (`tests/test_web.py`), con un servidor real en un puerto libre.
 - 3 de aceptación (`tests/test_aceptacion.py`), una por cada escenario construido de las historias, con los datos exactos de sus criterios Gherkin.
 - 69 de la entrega final con base de datos: reglas de las órdenes (`tests/test_ordenes.py`), páginas por HTTP (`tests/test_web_taller.py`) y 13 pruebas de aceptación más (`tests/test_aceptacion_taller.py`).
+- 18 de la interfaz (`tests/test_web_interfaz.py`): estilos y JavaScript servidos aparte, logo, nombre del taller y política de seguridad sin estilos en línea.
 
 Cobertura de líneas y de ramas (semana 8):
 

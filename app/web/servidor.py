@@ -422,7 +422,8 @@ def main(entorno: Optional[Mapping[str, str]] = None) -> int:
         )
         return 1
     print(f"Base de datos: {describir_destino(servidor.configuracion.destino)}")
-    print(f"Taller Dos Ruedas en http://{host}:{puerto}  (Ctrl+C para detener)")
+    nombre = servidor.configuracion.nombre
+    print(f"{nombre} en http://{host}:{puerto}  (Ctrl+C para detener)")
     try:
         servidor.serve_forever()
     except KeyboardInterrupt:
