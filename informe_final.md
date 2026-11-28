@@ -7,13 +7,17 @@ Fecha: 2026-11-27
 
 ## 1. Resumen
 
-El Taller Dos Ruedas (nombre ficticio) registra el ingreso de las motos en un cuaderno, suma el cobro a mano y no tiene cómo avisarle al cliente si la moto ya está lista. El proyecto diseñó un sistema web para ese taller y construyó tres partes:
+El Taller Dos Ruedas (nombre ficticio) registra el ingreso de las motos en un cuaderno, suma el cobro a mano y no tiene cómo avisarle al cliente si la moto ya está lista. El proyecto diseñó un sistema web para ese taller y construyó:
 
-- La regla del cobro de repuestos y mano de obra sin IVA, con control de acceso por mecánico (HU-07).
-- La validación de la placa de la moto (HU-01).
-- Una versión web local que se despliega con Python o en un contenedor. El pipeline la construye y la prueba en cada envío.
+- La regla del cobro de repuestos y mano de obra sin IVA, con control de acceso por mecánico (HU-07), y la validación de la placa (HU-01).
+- El registro de cada moto con la fecha y hora, la placa, las observaciones y el mecánico que la toma.
+- Las etapas Recibida, En reparación y Terminada, con su historial.
+- La factura, que se guarda al terminar, y la consulta del cliente con su número de orden.
+- Una base de datos PostgreSQL 16, o un archivo SQLite si no hay PostgreSQL.
 
-Usé Claude en las seis fases: prompts y propuesta, requisitos, diseño, código, pruebas y operación. Cada resultado quedó registrado en una bitácora de 42 entradas, y 7 de esas sugerencias se rechazaron. La verificación encontró errores de la IA en cada fase:
+Se despliega con Python o en un contenedor, y el pipeline lo prueba en cada envío.
+
+Usé Claude en las seis fases: prompts y propuesta, requisitos, diseño, código, pruebas y operación. Cada resultado quedó registrado en una bitácora de 44 entradas, y 7 de esas sugerencias se rechazaron. La verificación encontró errores de la IA en cada fase:
 
 - **Requisitos:** citas inventadas.
 - **Diseño:** microservicios para 25 motos al día y datos personales que nadie pidió.
@@ -21,7 +25,7 @@ Usé Claude en las seis fases: prompts y propuesta, requisitos, diseño, código
 - **Pruebas:** pruebas que pasaban sin comprobar nada.
 - **Operación:** un pipeline con acciones sin fijar y sin límite de tiempo.
 
-El resultado final son 104 pruebas en verde, con 100 % de cobertura de líneas y de ramas en las reglas del negocio y 100 % de mutantes detectados en ellas.
+El resultado final son 176 pruebas en verde (221 en el pipeline, que repite las de las órdenes contra PostgreSQL 16), con 100 % de cobertura de líneas y de ramas en las reglas del cobro y de las órdenes y 100 % de mutantes detectados en las reglas. De los 20 escenarios de las historias de usuario se cumplen 11, 3 se cumplen en parte y 6 no se han construido.
 
 ## 2. Problema y usuario
 
@@ -79,7 +83,7 @@ La herramienta fue Claude (Anthropic) en dos modos: chat para los documentos y a
 - **Fase:** pruebas (semanas 7 y 8).
 - **Qué propuso la IA:** un borrador de 50 pruebas en pytest, todas en verde (commit [47b4e8a](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/commit/47b4e8a)). Entre ellas, `pytest.raises(Exception)` sin mensaje, `assert resumen.total > 0` y `test_total_es_la_suma_de_los_subtotales`, que calculaba el esperado con el mismo código que probaba.
 - **Qué estaba mal:** varias pruebas no fallaban al romper el código. Con el IVA del 19 % aplicado a los subtotales, la prueba de la suma seguía pasando, y `pytest.raises(Exception)` aceptaba hasta el TypeError del hallazgo H-03.
-- **Cómo lo detecté:** apliqué tres preguntas a cada prueba (¿el esperado sale de la regla?, ¿fallaría si rompo el código?, ¿repite otra prueba?) y rompí el código a propósito. Con la mutación del IVA en los subtotales, la prueba de la IA pasó y la suite revisada tuvo 12 fallos (bitácora, entrada 28). Además, la mutación M5, que acepta un precio 18000.0, sobrevivió aunque `calculo.py` tenía 100 % de cobertura de líneas y de ramas.
+- **Cómo lo detecté:** apliqué tres preguntas a cada prueba (¿el esperado sale de la regla?, ¿fallaría si rompo el código?, ¿repite otra prueba?) y rompí el código a propósito. Con la mutación del IVA en los subtotales, la prueba de la IA pasó y la suite revisada tuvo 12 fallos (bitácora, entrada 28). Además, la mutación M5, que acepta un precio 18000.0, sobrevivió aunque `calculo.py` tenía 100 % de cobertura de líneas y de ramas. Para medir el borrador sin revisar, corrí contra él los 7 errores de las reglas: atrapó 5 y dejó pasar 2, el M5 y el M6, que agrega el ítem a la orden antes de validarlo ([registro_pruebas.md, sección 5.3](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/registro_pruebas.md)).
 - **Qué hice:**
   - Descarté 7 pruebas o filas y corregí 8 con el mensaje exacto de cada error y los totales calculados a mano (commit [3051ed9](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/commit/3051ed9)).
   - Agregué los casos P18 y P19 para matar la mutación M5 (commit [a138743](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/commit/a138743)).
@@ -106,29 +110,36 @@ La herramienta fue Claude (Anthropic) en dos modos: chat para los documentos y a
 
 ## 5. Estado final del sistema
 
-- **Arquitectura:** monolito modular en Python, con un módulo por carpeta en `app/` ([ADR-001](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/03_diseno/adr/ADR-001-monolito-modular.md)). Para desplegar sin base de datos ni paquetes externos, la entrega final agrega una versión web local con la biblioteca estándar ([ADR-003](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/03_diseno/adr/ADR-003-version-web-local.md)). Escucha solo en el equipo, no guarda datos, escapa todo lo que escribe el usuario y tiene `/salud` para la operación. FastAPI, PostgreSQL y React siguen previstos para cuando exista la base de datos.
-- **Funcionalidades terminadas (historias Must):**
+- **Arquitectura:** monolito modular en Python, con un módulo por carpeta en `app/` ([ADR-001](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/03_diseno/adr/ADR-001-monolito-modular.md)). La versión web usa `http.server` de la biblioteca estándar ([ADR-003](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/03_diseno/adr/ADR-003-version-web-local.md)): escucha solo en el equipo, escapa todo lo que escribe el usuario y tiene `/salud` para la operación. Después del despliegue, el cliente pidió guardar los datos. Las órdenes se guardan en PostgreSQL 16, o en un archivo SQLite si no hay servidor, con las mismas consultas ([ADR-004](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/03_diseno/adr/ADR-004-persistencia-y-etapas.md)). FastAPI y React siguen previstos para cuando haya usuarios con inicio de sesión.
+- **Funcionalidades terminadas.** Cada escenario Gherkin de la semana 3 se evaluó con sus datos exactos. Cada escenario construido tiene su prueba de aceptación en [tests/test_aceptacion.py](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/tests/test_aceptacion.py) y [tests/test_aceptacion_taller.py](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/tests/test_aceptacion_taller.py). Se cumplen 11 de 20 escenarios, 3 en parte y 6 no se han construido. El cliente cambió "Lista para entregar" por Terminada:
 
-  | Historia | Estado |
+  | Historia | Resultado |
   |---|---|
-  | HU-07 Registrar repuestos y mano de obra | Terminada como regla de negocio: cálculo sin IVA y solo el mecánico asignado registra cobros. La página calcula el cobro. Falta guardarlo en la base de datos |
-  | HU-01 Registrar el ingreso | Parcial: validación de la placa con los formatos ABC12D y ABC12, también en la página. Falta guardar la moto y el dueño |
-  | HU-02 Estado de llegada, HU-03 Número de orden, HU-04 Consulta del cliente y HU-06 Cambio de estado | Pendientes. HU-03 y HU-04 están diseñadas en el ADR-002 |
+  | HU-03 Número de orden (Must) | Cumple 2 de 2: ocho dígitos sin repetir y una sola orden abierta por moto |
+  | HU-04 Consulta del cliente (Must) | Cumple 2 de 2: etapa y fecha de la última actualización, y el mensaje del número que no existe. Máximo 5 consultas cada 15 minutos |
+  | HU-06 Cambio de etapa (Must) | Cumple 2 de 2: Terminada con fecha y hora, y no se termina sin mano de obra |
+  | HU-07 Repuestos y mano de obra (Must) | Cumple 2 de 2: total sin IVA de 85.000 guardado en la base, y repuesto sin precio que no se agrega |
+  | HU-08 Detalle del cobro (Should) | Cumple 2 de 2: detalle con cada ítem y el total, solo cuando está Terminada |
+  | HU-02 Estado de llegada (Must) | Cumple el escenario 2 (observación vacía). El 1 en parte: se guarda con fecha y hora, pero sin el nombre del registrador, porque no hay usuarios |
+  | HU-01 Registrar el ingreso (Must) | Escenario 1 en parte: se guardan la placa, las observaciones, la fecha y la hora, pero no el kilometraje ni el dueño, por decisión del cliente. Escenario 2 (kilometraje vacío) sin construir |
+  | HU-05 Asignar mecánico (Should) | Escenario 1 en parte: el mecánico se elige al registrar. Escenario 2 (cambiar de mecánico) sin construir |
+  | HU-09 Historial por placa (Could) y HU-10 Entrega (Should) | Sin construir |
 
 - **Pruebas:**
-  - 104 pruebas: 20 de las semanas 5 y 6, 50 de la semana 7 y 34 de la versión web.
-  - Cobertura en el pipeline: 100 % de líneas y de ramas en `calculo.py`, `servicio.py`, `placas.py` y `paginas.py`, y 87 % del total. Lo que falta son los demos y el ciclo de arranque del servidor, que se prueban con la prueba de humo y el contenedor.
-  - Mutación a mano: 11 de 11 mutantes detectados.
-  - [Última ejecución del pipeline en `main`](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/actions/workflows/calidad.yml?query=branch%3Amain), en verde con Python 3.12, 3.13 y el contenedor. Antes de integrar, la [ejecución 46065039912](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/actions/runs/46065039912) de la rama `entrega-final` también salió en verde.
+  - 176 pruebas: 20 de las semanas 5 y 6, 50 de la semana 7, 34 de la versión web, 3 de aceptación de la sustentación y 69 de la base de datos (reglas, páginas por HTTP y 13 de aceptación).
+  - En el pipeline, las pruebas de las órdenes se repiten contra un PostgreSQL 16 desechable: 221 en total.
+  - Cobertura en el pipeline: 100 % de líneas y de ramas en `calculo.py`, `servicio.py` de cobros y de órdenes, `placas.py` y `paginas.py`, y 93 % del total. Lo que falta son los demos, el ciclo de arranque del servidor y algunas ramas de error de la base de datos.
+  - Mutación a mano: 11 de 11 mutantes detectados en las reglas y en la versión web.
+  - [Última ejecución del pipeline en `main`](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/actions/workflows/calidad.yml?query=branch%3Amain), en verde con Python 3.12, 3.13, PostgreSQL y el contenedor. La [ejecución 46084960626](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/actions/runs/46084960626) es la de la rama de la base de datos.
 - **Pendientes y por qué:**
-  - La base de datos, los usuarios con inicio de sesión, el número de orden aleatorio, la consulta pública y la auditoría de cambios no se construyeron. El seminario dedicó cada semana a una fase del ciclo con una funcionalidad pequeña y bien verificada, en lugar de muchas sin pruebas.
+  - Faltan los usuarios con inicio de sesión: hoy quien registra un cobro elige su nombre en una lista. También faltan el kilometraje y los datos del dueño, el cambio de mecánico, la entrega con el número de orden y el historial por placa. Se priorizó que lo construido estuviera probado y guardado.
   - Seis preguntas al cliente siguen abiertas (P-01 a P-12 en los documentos), por ejemplo, si una descripción vacía es válida o si debe haber un precio máximo.
 
 ## 6. Reflexión ética y legal
 
 | Principio | Decisión en mi proyecto | Evidencia |
 |---|---|---|
-| Datos personales (Ley 1581 de 2012) | El diseño guarda del cliente solo su nombre y su teléfono, para avisarle sobre su moto. Quité la cédula, el correo y el número de tarjeta que propuso la IA, porque ninguna historia los necesita. La consulta pública responde solo el estado y la fecha, nunca el nombre, el teléfono ni la placa. La versión desplegada no pide ni guarda datos personales, y su registro escribe solo el método, la ruta y el código. Las pruebas usan datos sintéticos (teléfonos con 555, una marca ficticia) y la entrevista es simulada. Pendiente antes de guardar datos reales: la autorización previa, expresa e informada del titular en el formulario de ingreso, y una forma de conocer, actualizar y rectificar sus datos | [Diseño, sección 5](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/03_diseno/Trujillo_Juan_S4_Diseno.pdf), [ADR-002](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/03_diseno/adr/ADR-002-numero-de-orden.md), [datos sintéticos](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/tests/datos/datos_sinteticos.json), [servidor.py](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/app/web/servidor.py) |
+| Datos personales (Ley 1581 de 2012) | El sistema guarda la fecha y hora de ingreso, la placa, las observaciones, el mecánico, las etapas y la factura, y ningún dato personal del cliente. Quité la cédula, el correo y el número de tarjeta que propuso la IA, porque ninguna historia los necesita. La consulta pública responde la etapa, la fecha y, al terminar, el total, nunca la placa. El registro del servidor oculta los números de orden. Los nombres reales de los mecánicos solo están en el `.env` de cada equipo, que no se sube; en el repositorio son ficticios. Las pruebas usan datos sintéticos (teléfonos con 555, una marca ficticia) y la entrevista es simulada. Pendiente antes de guardar datos del dueño: la autorización previa, expresa e informada del titular, y una forma de conocer, actualizar y rectificar sus datos | [Diseño, sección 5](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/03_diseno/Trujillo_Juan_S4_Diseno.pdf), [ADR-002](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/03_diseno/adr/ADR-002-numero-de-orden.md), [datos sintéticos](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/tests/datos/datos_sinteticos.json), [servidor.py](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/app/web/servidor.py) |
 | Sesgo | La IA trajo supuestos de otros contextos: IVA del 19 %, precios con decimales, cédula y pago con tarjeta. Cada regla se comparó con lo que dijo el taller. Los datos sintéticos incluyen tildes, ñ y apóstrofos (Begoña Ñáñez, José D'Alessandro) para que el sistema no falle con nombres comunes en Colombia. Riesgo abierto: la placa solo acepta los formatos ABC12D y ABC12, así que una moto con otro formato (por ejemplo, una placa extranjera) quedaría por fuera. Por eso es la pregunta P-08 para el cliente, no una regla cerrada | [registro_pruebas.md, secciones 1.4 y 4](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/registro_pruebas.md), bitácora, entrada 3 |
 | Transparencia | La página dice que es una versión de demostración que no guarda datos. Los errores explican la regla que no se cumple ("Fila 2: El precio no puede ser negativo"). El README, la bitácora y este informe declaran el uso de IA, y la entrevista se presenta como simulada | [Captura de la página](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/evidencias/web_cobro_error.png), [README, Uso de IA](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/README.md) |
 | Responsabilidad | Respondo yo por los errores del software, no la IA. Ninguna sugerencia entró sin verificación y la bitácora registra quién decidió qué. El plan de operación define qué hacer si un cobro no cuadra: reproducir el caso con una prueba, corregir y, mientras tanto, cobrar a mano. Los términos de Anthropic advierten que no se debe confiar en las respuestas sin confirmarlas por cuenta propia, y así se trabajó | [Plan de operación, secciones 4 y 6](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/06_operacion/plan_operacion.md), [bitácora](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/bitacora_ia.md) |
@@ -159,7 +170,7 @@ La herramienta fue Claude (Anthropic) en dos modos: chat para los documentos y a
 
 ## 8. Anexos
 
-- Bitácora de uso de IA: [bitacora_ia.md](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/bitacora_ia.md), 42 entradas de las semanas 5 a 10, más el recorrido de las semanas 2 a 4.
+- Bitácora de uso de IA: [bitacora_ia.md](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/bitacora_ia.md), 44 entradas de las semanas 5 a 10, más el recorrido de las semanas 2 a 4.
 - Documentos de cada módulo: [índice de docs/](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/README.md).
   - [Propuesta](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/01_fundamentos/propuesta.md).
   - [Requisitos](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/blob/main/docs/02_requisitos/Trujillo_Juan_S3_Requisitos.pdf).

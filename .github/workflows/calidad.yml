@@ -14,6 +14,20 @@ jobs:
   revision:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    services:
+      # PostgreSQL 16 desechable para las pruebas de las órdenes (ADR-001).
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: taller_pruebas
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      TALLER_PG_PRUEBAS: postgresql://postgres@localhost:5432/taller_pruebas
     strategy:
       matrix:
         # 3.12 como en la semana 6 y 3.13, la versión del equipo del taller
@@ -26,13 +40,13 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Instalar herramientas de desarrollo
-        run: pip install -r requirements-dev.txt
+        run: pip install -r requirements.txt -r requirements-dev.txt
 
       - name: Linter (ruff con reglas E, F, B y S)
         run: ruff check --select E,F,B,S .
 
       - name: Auditoría de dependencias (pip-audit)
-        run: pip-audit -r requirements-dev.txt
+        run: pip-audit -r requirements.txt -r requirements-dev.txt
 
       - name: Pruebas con cobertura de líneas y de ramas
         run: python -m pytest -v --cov=app --cov-branch --cov-report=term-missing

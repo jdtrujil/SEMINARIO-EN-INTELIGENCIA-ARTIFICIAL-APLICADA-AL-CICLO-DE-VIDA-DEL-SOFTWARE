@@ -56,12 +56,19 @@ a{color:#1f3a5f}
 """
 
 
-def pagina(titulo: str, contenido: str) -> str:
+PIE_DEMO = (
+    "Versión local de demostración. No guarda datos y no pide datos "
+    "personales del cliente."
+)
+
+
+def pagina(titulo: str, contenido: str, pie: str = PIE_DEMO) -> str:
     """Arma una página completa con el encabezado y el pie del taller.
 
     Parámetros:
         titulo: título de la pestaña; se escapa aquí.
         contenido: HTML del cuerpo, ya escapado por quien lo arma.
+        pie: texto del pie de página; se escapa aquí.
 
     Devuelve:
         El documento HTML completo.
@@ -75,8 +82,7 @@ def pagina(titulo: str, contenido: str) -> str:
         "<header><h1>Taller Dos Ruedas</h1>"
         "<p>Ingreso de motos y cobro de repuestos y mano de obra, sin IVA</p></header>"
         f"<main>{contenido}</main>"
-        "<footer>Versión local de demostración. No guarda datos y no pide datos "
-        "personales del cliente.</footer>"
+        f"<footer>{html.escape(pie)}</footer>"
         "</body></html>"
     )
 

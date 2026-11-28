@@ -1,0 +1,3 @@
+# Dependencias para ejecutar el sistema con PostgreSQL (ADR-001 y ADR-004).
+# Sin DATABASE_URL el sistema usa SQLite de la biblioteca estándar y no las necesita.
+psycopg[binary]==3.3.8

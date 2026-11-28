@@ -220,6 +220,7 @@ Las mutaciones se hicieron a mano, una por una, y se deshicieron con `git restor
 | Reglas, semana 7 (M1 a M7) | 7 | 6 | 86 % | M5 sobrevivió con 100 % de cobertura |
 | Reglas, después de agregar P18 y P19 | 7 | 7 | 100 % | Commit [a138743](https://github.com/jdtrujil/SEMINARIO-EN-INTELIGENCIA-ARTIFICIAL-APLICADA-AL-CICLO-DE-VIDA-DEL-SOFTWARE/commit/a138743) |
 | Versión web (W1 a W4) | 4 | 4 | 100 % | W1: sin escapar la descripción (1 prueba falla). W2: sin quitar el punto de miles (2). W3: sin límite de tamaño (1). W4: escuchar en 0.0.0.0 (2 pruebas, y ruff S104) |
+| Borrador de la IA sin revisar (commit 47b4e8a) contra M1 a M7 | 7 | 5 | 71 % | Sobrevivieron M5 (18000.0) y M6 (agregar el ítem antes de validarlo): el borrador no probaba decimales con parte cero ni revisaba que la orden quedara igual. Medido en una copia aparte del código, con las pruebas del borrador |
 
 No se encontraron mutantes equivalentes.
 
@@ -230,4 +231,4 @@ pip install -r requirements-dev.txt
 python -m pytest -v
 ```
 
-Resultado: 104 pruebas en verde. Con cobertura: `python -m pytest --cov=app --cov-branch --cov-report=term-missing`. GitHub Actions las corre en cada envío, con Python 3.12 y 3.13, junto con ruff, pip-audit, la prueba de humo y el contenedor.
+Resultado: 176 pruebas en verde; en el pipeline, 221, porque las de órdenes se repiten contra PostgreSQL 16. Con cobertura: `python -m pytest --cov=app --cov-branch --cov-report=term-missing`. GitHub Actions las corre en cada envío, con Python 3.12 y 3.13, junto con ruff, pip-audit, la prueba de humo y el contenedor.

@@ -1,12 +1,12 @@
 [project]
 name = "taller-motos"
-version = "0.3.0"
+version = "0.4.0"
 description = "Control de ingreso y cobros del Taller Dos Ruedas"
 readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "MIT" }
 authors = [{ name = "Juan Diego Trujillo Rodriguez" }]
-# El sistema no tiene dependencias en tiempo de ejecución por ahora.
+# Sin PostgreSQL no hay dependencias; con PostgreSQL, ver requirements.txt.
 dependencies = []
 
 [tool.ruff]

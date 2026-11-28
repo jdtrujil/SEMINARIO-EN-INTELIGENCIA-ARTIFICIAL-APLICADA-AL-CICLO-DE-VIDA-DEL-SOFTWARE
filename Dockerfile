@@ -12,12 +12,13 @@ FROM python:3.13-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     TALLER_HOST=0.0.0.0 \
-    TALLER_PUERTO=8000
+    TALLER_PUERTO=8000 \
+    TALLER_BD_ARCHIVO=/home/taller/taller.db
 
 WORKDIR /app
 
 # Solo el código de la aplicación: sin pruebas, documentos, .git ni .env.
-# El sistema usa solo la biblioteca estándar, así que no hay pip install.
+# Sin DATABASE_URL usa SQLite de la biblioteca estándar, así que no hay pip install.
 COPY app ./app
 
 # Usuario sin privilegios.
