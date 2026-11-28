@@ -1,5 +1,7 @@
 # Taller Dos Ruedas: control de ingreso de motos
 
+**Video de la sustentación:** [ver en Google Drive](https://drive.google.com/file/d/1NxSysAmFsPcgUIF8xGq4UKu68BkcHQdd/view?usp=drive_link)
+
 ## Qué es
 
 Sistema web para el Taller Dos Ruedas (nombre ficticio), un taller de motos con un registrador, dos mecánicos y un ayudante. Registra el ingreso de cada moto, asigna el trabajo a los mecánicos, calcula el cobro de repuestos y mano de obra sin IVA y permite que el cliente consulte con su número de orden si la moto ya está lista. Es el proyecto final del Seminario Inteligencia Artificial Aplicada al Ciclo de Vida del Software.
